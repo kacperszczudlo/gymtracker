@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#212121">
+
+    <!-- Nagłówek -->
+    <TextView
+        android:id="@+id/trainingTitleTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Trening 1 Poniedziałek"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Lista ćwiczeń -->
+    <TextView
+        android:id="@+id/exercise1TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ćwiczenie 1"
+        android:background="#424242"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:id="@+id/exercise2TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ćwiczenie 1"
+        android:background="#424242"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:id="@+id/exercise3TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ćwiczenie 1"
+        android:background="#424242"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:id="@+id/exercise4TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ćwiczenie 1"
+        android:background="#424242"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center_vertical"/>
+
+    <TextView
+        android:id="@+id/exercise5TextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ćwiczenie 1"
+        android:background="#424242"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        android:gravity="center_vertical"/>
+
+    <!-- Przycisk DODAJ ĆWICZENIE -->
+    <Button
+        android:id="@+id/addExerciseButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DODAJ ĆWICZENIE"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Przycisk DALEJ -->
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DALEJ"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"/>
+
+</LinearLayout>

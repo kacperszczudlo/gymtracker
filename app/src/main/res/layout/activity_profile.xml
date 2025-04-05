@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#212121">
+
+    <!-- Nagłówek -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Profil"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Sekcja Płeć -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Płeć"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp"/>
+
+    <RadioGroup
+        android:id="@+id/genderRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/femaleRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Kobieta"
+            android:textColor="#FFFFFF"
+            android:buttonTint="#4CAF50"
+            android:layout_marginEnd="16dp"/>
+
+        <RadioButton
+            android:id="@+id/maleRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Męczyzna"
+            android:textColor="#FFFFFF"
+            android:buttonTint="#4CAF50"/>
+    </RadioGroup>
+
+    <!-- Sekcja Wzrost -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wzrost"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/heightEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Wzrost (cm)"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Sekcja Obwód (np. ramion) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Obwód (NP. RAMION)"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/circumference1EditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Obwód (Ramion)"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/circumference2EditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Obwód (Talii)"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/circumference3EditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Obwód (Bioder)"
+        android:inputType="number"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Sekcja Masa Ciała -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Masa Ciała"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/weightEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Masa Ciała (kg)"
+        android:inputType="numberDecimal"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Przycisk DALEJ -->
+    <Button
+        android:id="@+id/nextButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DALEJ"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"/>
+
+</LinearLayout>

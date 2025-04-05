@@ -17,24 +17,37 @@
         android:gravity="center"
         android:layout_marginBottom="32dp"/>
 
-    <!-- Przycisk Login -->
+    <!-- Pole na nazwę użytkownika -->
+    <EditText
+        android:id="@+id/usernameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nazwa użytkownika"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Pole na hasło -->
+    <EditText
+        android:id="@+id/passwordEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Hasło"
+        android:inputType="textPassword"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- Przycisk Zaloguj -->
     <Button
         android:id="@+id/loginButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Login"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Przycisk Register -->
-    <Button
-        android:id="@+id/registerButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Register"
+        android:text="ZALOGUJ"
         android:backgroundTint="#4CAF50"
         android:textColor="#FFFFFF"
         android:padding="12dp"

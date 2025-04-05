@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="usernameEditText" type="id" />
+    <item name="passwordEditText" type="id" />
+    <item name="exercise1TextView" type="id" />
+    <item name="exercise2TextView" type="id" />
+    <item name="exercise3TextView" type="id" />
+    <item name="exercise4TextView" type="id" />
+    <item name="exercise5TextView" type="id" />
+    <item name="addExerciseButton" type="id" />
+    <item name="nextButton" type="id" />
+    <item name="trainingTitleTextView" type="id" />
+    <item name="mondayButton" type="id" />
+    <item name="tuesdayButton" type="id" />
+    <item name="wednesdayButton" type="id" />
+    <item name="thursdayButton" type="id" />
+    <item name="fridayButton" type="id" />
+    <item name="saturdayButton" type="id" />
+    <item name="sundayButton" type="id" />
+    <item name="genderRadioGroup" type="id" />
+    <item name="femaleRadioButton" type="id" />
+    <item name="maleRadioButton" type="id" />
+    <item name="heightEditText" type="id" />
+    <item name="circumference1EditText" type="id" />
+    <item name="circumference2EditText" type="id" />
+    <item name="circumference3EditText" type="id" />
+    <item name="weightEditText" type="id" />
+</resources>
