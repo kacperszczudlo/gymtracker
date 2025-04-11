@@ -11,7 +11,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -26,6 +25,10 @@ public class TrainingMainActivity extends AppCompatActivity {
     private List<Exercise> exerciseList;
     private List<TrainingDay> trainingDayList;
     private boolean showingExercisesForToday = true;
+    private long currentTrainingDayId = -1;
+
+    // TextViews for the calendar
+    private TextView[] calendarDays;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,30 +40,41 @@ public class TrainingMainActivity extends AppCompatActivity {
         trainingTitleTextView = findViewById(R.id.trainingTitleTextView);
         addSeriesButton = findViewById(R.id.addSeriesButton);
 
+        // Inicjalizacja TextView dla kalendarza
+        calendarDays = new TextView[]{
+                findViewById(R.id.day1),
+                findViewById(R.id.day2),
+                findViewById(R.id.day3),
+                findViewById(R.id.day4),
+                findViewById(R.id.day5),
+                findViewById(R.id.day6),
+                findViewById(R.id.day7)
+        };
+
         // Inicjalizacja bazy danych
         dbHelper = new DatabaseHelper(this);
 
         // Pobierz aktualny dzień tygodnia
         String today = getCurrentDayOfWeek();
+        currentTrainingDayId = dbHelper.getTrainingDayId(today);
 
         // Pobierz ćwiczenia dla dzisiejszego dnia
-        exerciseList = new ArrayList<>();
-        List<String> exercisesForToday = dbHelper.getExercisesForDay(today);
-        for (String exerciseName : exercisesForToday) {
-            exerciseList.add(new Exercise(exerciseName, 8, 85)); // Domyślne wartości powtórzeń i ciężaru
-        }
+        exerciseList = dbHelper.getExercisesForDay(today);
 
         // Pobierz wszystkie dni z ćwiczeniami
         trainingDayList = dbHelper.getAllTrainingDays();
 
-        // Ustaw nagłówek
-        if (!exercisesForToday.isEmpty()) {
-            trainingTitleTextView.setText("Trening - " + today);
+        // Ustaw nagłówek (bez daty, bo kalendarz ją pokazuje)
+        if (!exerciseList.isEmpty()) {
+            trainingTitleTextView.setText("Trening");
             showingExercisesForToday = true;
         } else {
             trainingTitleTextView.setText("Brak treningu na dziś");
             showingExercisesForToday = false;
         }
+
+        // Ustaw daty w kalendarzu
+        setupCalendar();
 
         // Inicjalizacja RecyclerView
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -69,9 +83,9 @@ public class TrainingMainActivity extends AppCompatActivity {
         // Obsługa przycisku "Dodaj serię"
         addSeriesButton.setOnClickListener(v -> {
             if (showingExercisesForToday && !exerciseList.isEmpty()) {
-                // Dodaj nową serię (kolejne ćwiczenie z tej samej listy)
                 for (Exercise exercise : exerciseList) {
-                    exerciseList.add(new Exercise(exercise.getName(), 0, 0));
+                    exercise.setSets(exercise.getSets() + 1);
+                    dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), exercise.getReps());
                 }
                 recyclerView.getAdapter().notifyDataSetChanged();
             }
@@ -81,30 +95,60 @@ public class TrainingMainActivity extends AppCompatActivity {
     // Pobierz aktualny dzień tygodnia
     private String getCurrentDayOfWeek() {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", new Locale("pl", "PL"));
-        String day = dayFormat.format(calendar.getTime());
-        // Dopasuj format dnia do tego, co jest w bazie danych
-        switch (day.toLowerCase()) {
-            case "poniedziałek":
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        switch (dayOfWeek) {
+            case Calendar.MONDAY:
                 return "Poniedziałek";
-            case "wtorek":
+            case Calendar.TUESDAY:
                 return "Wtorek";
-            case "środa":
+            case Calendar.WEDNESDAY:
                 return "Środa";
-            case "czwartek":
+            case Calendar.THURSDAY:
                 return "Czwartek";
-            case "piątek":
+            case Calendar.FRIDAY:
                 return "Piątek";
-            case "sobota":
+            case Calendar.SATURDAY:
                 return "Sobota";
-            case "niedziela":
+            case Calendar.SUNDAY:
                 return "Niedziela";
             default:
                 return "";
         }
     }
 
-    // Aktualizuj RecyclerView w zależności od trybu (ćwiczenia na dziś lub wszystkie dni)
+    // Ustaw daty w kalendarzu
+    private void setupCalendar() {
+        // Pobierz aktualną datę z urządzenia
+        Calendar calendar = Calendar.getInstance();
+        int currentDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+        int currentMonth = calendar.get(Calendar.MONTH);
+        int currentYear = calendar.get(Calendar.YEAR);
+
+        // Ustaw kalendarz na początek bieżącego tygodnia (poniedziałek)
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        int daysToSubtract = (dayOfWeek == Calendar.SUNDAY) ? 6 : dayOfWeek - Calendar.MONDAY;
+        calendar.add(Calendar.DAY_OF_MONTH, -daysToSubtract);
+
+        // Ustaw daty dla każdego dnia tygodnia (poniedziałek do niedzieli)
+        for (int i = 0; i < 7; i++) {
+            int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+            calendarDays[i].setText(String.valueOf(dayOfMonth));
+
+            // Podświetl aktualny dzień
+            if (dayOfMonth == currentDayOfMonth &&
+                    calendar.get(Calendar.MONTH) == currentMonth &&
+                    calendar.get(Calendar.YEAR) == currentYear) {
+                calendarDays[i].setBackgroundResource(R.drawable.calendar_selected_background);
+            } else {
+                calendarDays[i].setBackground(null);
+            }
+
+            // Przejdź do następnego dnia
+            calendar.add(Calendar.DAY_OF_MONTH, 1);
+        }
+    }
+
+    // Aktualizuj RecyclerView w zależności od trybu
     private void updateRecyclerView() {
         if (showingExercisesForToday && !exerciseList.isEmpty()) {
             recyclerView.setAdapter(new ExerciseAdapter(exerciseList));
@@ -132,31 +176,35 @@ public class TrainingMainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Exercise exercise = exercises.get(position);
             holder.exerciseNameTextView.setText(exercise.getName());
+            holder.setsEditText.setText(String.valueOf(exercise.getSets()));
             holder.repsEditText.setText(String.valueOf(exercise.getReps()));
-            holder.weightEditText.setText(String.valueOf(exercise.getWeight()));
 
-            // Aktualizuj wartości po edycji
+            holder.setsEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        int sets = Integer.parseInt(holder.setsEditText.getText().toString());
+                        exercise.setSets(sets);
+                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), sets, exercise.getReps());
+                    } catch (NumberFormatException e) {
+                        exercise.setSets(0);
+                        holder.setsEditText.setText("0");
+                    }
+                }
+            });
+
             holder.repsEditText.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
                     try {
-                        exercise.setReps(Integer.parseInt(holder.repsEditText.getText().toString()));
+                        int reps = Integer.parseInt(holder.repsEditText.getText().toString());
+                        exercise.setReps(reps);
+                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), reps);
                     } catch (NumberFormatException e) {
                         exercise.setReps(0);
+                        holder.repsEditText.setText("0");
                     }
                 }
             });
 
-            holder.weightEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    try {
-                        exercise.setWeight(Integer.parseInt(holder.weightEditText.getText().toString()));
-                    } catch (NumberFormatException e) {
-                        exercise.setWeight(0);
-                    }
-                }
-            });
-
-            // Usuń ćwiczenie
             holder.removeButton.setOnClickListener(v -> {
                 exercises.remove(position);
                 notifyItemRemoved(position);
@@ -170,14 +218,14 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText repsEditText, weightEditText;
+            EditText setsEditText, repsEditText;
             Button removeButton;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
+                setsEditText = itemView.findViewById(R.id.setsEditText);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
-                weightEditText = itemView.findViewById(R.id.weightEditText);
                 removeButton = itemView.findViewById(R.id.removeExerciseButton);
             }
         }
@@ -202,14 +250,9 @@ public class TrainingMainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             TrainingDay trainingDay = trainingDays.get(position);
             String day = trainingDay.getDay();
-            List<Exercise> exercises = trainingDay.getExercises();
-
-            // Wyświetl nazwę dnia
             holder.exerciseNameTextView.setText(day);
-
-            // Ukryj pola na powtórzenia i ciężar, ponieważ pokazujemy tylko dni
+            holder.setsEditText.setVisibility(View.GONE);
             holder.repsEditText.setVisibility(View.GONE);
-            holder.weightEditText.setVisibility(View.GONE);
             holder.removeButton.setVisibility(View.GONE);
         }
 
@@ -220,14 +263,14 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText repsEditText, weightEditText;
+            EditText setsEditText, repsEditText;
             Button removeButton;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
+                setsEditText = itemView.findViewById(R.id.setsEditText);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
-                weightEditText = itemView.findViewById(R.id.weightEditText);
                 removeButton = itemView.findViewById(R.id.removeExerciseButton);
             }
         }
