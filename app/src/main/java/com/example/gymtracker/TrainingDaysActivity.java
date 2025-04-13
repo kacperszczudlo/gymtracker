@@ -13,10 +13,21 @@ public class TrainingDaysActivity extends AppCompatActivity {
     private ArrayList<String> selectedDays;
     private static final int REQUEST_CODE_SETUP = 1;
 
+    // Zmienna przechowująca identyfikator użytkownika – teraz jako pole klasy
+    private int userId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_days);
+
+        // Pobieramy USER_ID z Intentu i zapisujemy w polu klasy
+        userId = getIntent().getIntExtra("USER_ID", -1);
+        if (userId == -1) {
+            Toast.makeText(this, "Błąd: Brak identyfikatora użytkownika", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         // Inicjalizacja przycisków
         mondayButton = findViewById(R.id.mondayButton);
@@ -40,7 +51,7 @@ public class TrainingDaysActivity extends AppCompatActivity {
         setButtonColor(saturdayButton, false);
         setButtonColor(sundayButton, false);
 
-        // Obsługa kliknięć dla każdego przycisku dnia
+        // Obsługa kliknięć przycisków dla każdego dnia
         mondayButton.setOnClickListener(v -> startSetupActivity("Poniedziałek"));
         tuesdayButton.setOnClickListener(v -> startSetupActivity("Wtorek"));
         wednesdayButton.setOnClickListener(v -> startSetupActivity("Środa"));
@@ -56,19 +67,20 @@ public class TrainingDaysActivity extends AppCompatActivity {
             } else {
                 String selectedDaysText = "Wybrane dni: " + String.join(", ", selectedDays);
                 Toast.makeText(TrainingDaysActivity.this, selectedDaysText, Toast.LENGTH_LONG).show();
-
-                // Przejście do TrainingMainActivity
                 Intent intent = new Intent(TrainingDaysActivity.this, TrainingMainActivity.class);
+                // Przekazujemy USER_ID też przy przejściu do TrainingMainActivity, jeśli jest potrzebny
+                intent.putExtra("USER_ID", userId);
                 startActivity(intent);
                 finish();
             }
         });
     }
 
-    // Funkcja do uruchomienia TrainingSetupActivity dla wybranego dnia
+    // Metoda uruchamiająca TrainingSetupActivity dla wybranego dnia i przekazująca USER_ID
     private void startSetupActivity(String day) {
         Intent intent = new Intent(TrainingDaysActivity.this, TrainingSetupActivity.class);
         intent.putExtra("selectedDay", day);
+        intent.putExtra("USER_ID", userId); // Dodajemy extra z identyfikatorem użytkownika
         startActivityForResult(intent, REQUEST_CODE_SETUP);
     }
 
@@ -94,7 +106,7 @@ public class TrainingDaysActivity extends AppCompatActivity {
         }
     }
 
-    // Funkcja zwracająca przycisk dla danego dnia
+    // Funkcja zwracająca przycisk odpowiadający wybranemu dniu
     private Button getButtonForDay(String day) {
         switch (day) {
             case "Poniedziałek":

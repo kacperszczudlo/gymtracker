@@ -8,11 +8,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 import com.example.gymtracker.BodyStatDto;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import java.math.BigDecimal;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -130,7 +127,7 @@ public class ProfileActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<User> call, Response<User> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // Zakładamy, że backend zwraca identyfikator użytkownika – metoda getId() musi być dostępna
+                    // Pobieramy identyfikator użytkownika z odpowiedzi
                     int userId = response.body().getId();
 
                     // Tworzymy obiekt BodyStatDto z danymi statystyk
@@ -141,7 +138,6 @@ public class ProfileActivity extends AppCompatActivity {
                     bodyStatDto.setHipCircumference(circum3);
 
                     // Wywołanie endpointu aktualizującego body_stat (PUT /api/users/{userId}/bodystat)
-                    // Wywołanie endpointu aktualizującego body_stat (PUT /api/users/{userId}/bodystat)
                     api.updateBodyStat(userId, bodyStatDto).enqueue(new Callback<BodyStatDto>() {
                         @Override
                         public void onResponse(Call<BodyStatDto> call, Response<BodyStatDto> response) {
@@ -149,8 +145,10 @@ public class ProfileActivity extends AppCompatActivity {
                                 Toast.makeText(ProfileActivity.this,
                                         "Profil uzupełniony!",
                                         Toast.LENGTH_LONG).show();
-                                // Zamiast finish() przenosimy użytkownika do TrainingDaysActivity:
-                                startActivity(new Intent(ProfileActivity.this, TrainingDaysActivity.class));
+                                // Przekazujemy identyfikator użytkownika do TrainingDaysActivity
+                                Intent intent = new Intent(ProfileActivity.this, TrainingDaysActivity.class);
+                                intent.putExtra("USER_ID", userId);
+                                startActivity(intent);
                                 finish();
                             } else {
                                 Toast.makeText(ProfileActivity.this,
@@ -158,7 +156,6 @@ public class ProfileActivity extends AppCompatActivity {
                                         Toast.LENGTH_LONG).show();
                             }
                         }
-
                         @Override
                         public void onFailure(Call<BodyStatDto> call, Throwable t) {
                             Toast.makeText(ProfileActivity.this,
@@ -173,7 +170,6 @@ public class ProfileActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 }
             }
-
             @Override
             public void onFailure(Call<User> call, Throwable t) {
                 Toast.makeText(ProfileActivity.this,
@@ -181,4 +177,5 @@ public class ProfileActivity extends AppCompatActivity {
                         Toast.LENGTH_LONG).show();
             }
         });
-    }}
+    }
+}

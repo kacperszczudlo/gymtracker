@@ -1,5 +1,7 @@
 package com.example.gymtracker;
 
+import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -19,4 +21,12 @@ public interface ApiService {
 
     @GET("/api/users/by-email")
     Call<User> getUserByEmail(@Query("email") String email);
+
+    // Nowa metoda do zapisu treningu dla użytkownika:
+    @POST("/api/users/{userId}/workouts")
+    Call<WorkoutDto> saveWorkout(@Path("userId") int userId, @Body WorkoutDto workoutDto);
+
+    // Metoda pobierająca treningi dla użytkownika z opcjonalnym filtrem dnia
+    @GET("/api/users/{userId}/workouts")
+    Call<List<WorkoutDto>> getWorkoutsForUser(@Path("userId") int userId, @Query("day") String day);
 }
