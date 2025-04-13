@@ -22,7 +22,19 @@ public class User {
     @SerializedName("height")
     public int height;
 
+    @SerializedName("id")
+    private int id;  // <-- pole ID
+
     // Gettery i Settery (opcjonalne, ale często wygodne)
+
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
 
