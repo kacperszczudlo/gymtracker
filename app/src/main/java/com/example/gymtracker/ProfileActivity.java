@@ -1,5 +1,6 @@
 package com.example.gymtracker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -140,6 +141,7 @@ public class ProfileActivity extends AppCompatActivity {
                     bodyStatDto.setHipCircumference(circum3);
 
                     // Wywołanie endpointu aktualizującego body_stat (PUT /api/users/{userId}/bodystat)
+                    // Wywołanie endpointu aktualizującego body_stat (PUT /api/users/{userId}/bodystat)
                     api.updateBodyStat(userId, bodyStatDto).enqueue(new Callback<BodyStatDto>() {
                         @Override
                         public void onResponse(Call<BodyStatDto> call, Response<BodyStatDto> response) {
@@ -147,7 +149,9 @@ public class ProfileActivity extends AppCompatActivity {
                                 Toast.makeText(ProfileActivity.this,
                                         "Profil uzupełniony!",
                                         Toast.LENGTH_LONG).show();
-                                finish(); // Zakończenie aktywności
+                                // Zamiast finish() przenosimy użytkownika do TrainingDaysActivity:
+                                startActivity(new Intent(ProfileActivity.this, TrainingDaysActivity.class));
+                                finish();
                             } else {
                                 Toast.makeText(ProfileActivity.this,
                                         "Błąd aktualizacji statystyk: " + response.code(),
@@ -162,6 +166,7 @@ public class ProfileActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
                         }
                     });
+
                 } else {
                     Toast.makeText(ProfileActivity.this,
                             "Błąd rejestracji: " + response.code(),
