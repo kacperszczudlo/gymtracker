@@ -1,76 +1,116 @@
-package com.example.gymtracker; // Zmień na nazwę swojego pakietu
+package com.example.gymtracker;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfileActivity extends AppCompatActivity {
 
     private RadioGroup genderRadioGroup;
-    private RadioButton femaleRadioButton, maleRadioButton;
-    private EditText heightEditText, circumference1EditText, circumference2EditText, circumference3EditText, weightEditText;
-    private Button nextButton;
+    private RadioButton maleRadioButton;
+    private RadioButton femaleRadioButton;
+
+    private EditText heightEditText;
+    private Button finishButton;
+
+    // Jeżeli przekazujesz dane z poprzedniego ekranu:
+    private String firstName, lastName, email, password;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile);
+        setContentView(R.layout.activity_profile); // <-- nowy layout z ScrollView
 
-        // Inicjalizacja elementów UI
+        // Odbieranie danych z Intentu (jeśli tak robisz):
+        if (getIntent() != null) {
+            firstName = getIntent().getStringExtra("EXTRA_FIRST_NAME");
+            lastName  = getIntent().getStringExtra("EXTRA_LAST_NAME");
+            email     = getIntent().getStringExtra("EXTRA_EMAIL");
+            password  = getIntent().getStringExtra("EXTRA_PASSWORD");
+        }
+
+        // Powiązanie z layoutem - UWAGA: nazwy ID z XML
         genderRadioGroup = findViewById(R.id.genderRadioGroup);
-        femaleRadioButton = findViewById(R.id.femaleRadioButton);
-        maleRadioButton = findViewById(R.id.maleRadioButton);
-        heightEditText = findViewById(R.id.heightEditText);
-        circumference1EditText = findViewById(R.id.circumference1EditText);
-        circumference2EditText = findViewById(R.id.circumference2EditText);
-        circumference3EditText = findViewById(R.id.circumference3EditText);
-        weightEditText = findViewById(R.id.weightEditText);
-        nextButton = findViewById(R.id.nextButton);
+        maleRadioButton  = findViewById(R.id.maleRadioButton);
+        femaleRadioButton= findViewById(R.id.femaleRadioButton);
 
-        // Obsługa kliknięcia przycisku DALEJ
-        nextButton.setOnClickListener(new View.OnClickListener() {
+        heightEditText   = findViewById(R.id.heightEditText);
+        finishButton     = findViewById(R.id.profileFinishButton);
+
+        finishButton.setOnClickListener(v -> finishRegistration());
+    }
+
+    private void finishRegistration() {
+        // 1. Ustalamy, która płeć jest zaznaczona w RadioGroup
+        String genderStr = "";
+        if (maleRadioButton.isChecked()) {
+            genderStr = "male";
+        } else if (femaleRadioButton.isChecked()) {
+            genderStr = "female";
+        } else {
+            // brak zaznaczonego przycisku - ewentualna walidacja
+            Toast.makeText(this, "Wybierz płeć", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 2. Wczytujemy wzrost z EditText
+        String heightStr = heightEditText.getText().toString().trim();
+        if (heightStr.isEmpty()) {
+            heightEditText.setError("Podaj wzrost");
+            heightEditText.requestFocus();
+            return;
+        }
+        int height;
+        try {
+            height = Integer.parseInt(heightStr);
+        } catch (NumberFormatException e) {
+            heightEditText.setError("Niepoprawna liczba");
+            heightEditText.requestFocus();
+            return;
+        }
+
+        // 3. Tworzymy obiekt do wysłania (User, itp.)
+        User user = new User();
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setPasswordHash(password);
+        user.setGender(genderStr);
+        user.setHeight(height);
+
+        // 4. Wywołanie do backendu przez Retrofit
+        ApiService api = RetrofitClient.getApiService();
+        api.registerUser(user).enqueue(new Callback<User>() {
             @Override
-            public void onClick(View v) {
-                // Pobierz dane z pól
-                String gender = "";
-                if (genderRadioGroup.getCheckedRadioButtonId() == R.id.femaleRadioButton) {
-                    gender = "Kobieta";
-                } else if (genderRadioGroup.getCheckedRadioButtonId() == R.id.maleRadioButton) {
-                    gender = "Męczyzna";
+            public void onResponse(Call<User> call, Response<User> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(ProfileActivity.this,
+                            "Zarejestrowano użytkownika: " + response.body().getEmail(),
+                            Toast.LENGTH_LONG).show();
+                    finish(); // zamykamy aktywność, wracamy do poprzedniego ekranu
+                } else {
+                    Toast.makeText(ProfileActivity.this,
+                            "Błąd rejestracji: " + response.code(),
+                            Toast.LENGTH_LONG).show();
                 }
+            }
 
-                String height = heightEditText.getText().toString().trim();
-                String circumference1 = circumference1EditText.getText().toString().trim();
-                String circumference2 = circumference2EditText.getText().toString().trim();
-                String circumference3 = circumference3EditText.getText().toString().trim();
-                String weight = weightEditText.getText().toString().trim();
-
-                // Podstawowa walidacja
-                if (gender.isEmpty()) {
-                    Toast.makeText(ProfileActivity.this, "Wybierz płeć", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (height.isEmpty()) {
-                    heightEditText.setError("Podaj wzrost");
-                    return;
-                }
-                if (weight.isEmpty()) {
-                    weightEditText.setError("Podaj masę ciała");
-                    return;
-                }
-
-                // Jeśli walidacja przeszła, możesz zapisać dane lub przejść do kolejnej aktywności
-                Toast.makeText(ProfileActivity.this, "Dane zapisane:\nPłeć: " + gender + "\nWzrost: " + height + " cm\nMasa: " + weight + " kg", Toast.LENGTH_LONG).show();
-
-                // Tutaj możesz dodać kod do przejścia do kolejnej aktywności, np.:
-                // Intent intent = new Intent(ProfileActivity.this, NextActivity.class);
-                // startActivity(intent);
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                Toast.makeText(ProfileActivity.this,
+                        "Błąd połączenia z serwerem: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
             }
         });
     }
 }
+

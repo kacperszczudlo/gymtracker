@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
         registerButton = findViewById(R.id.registerButton);
 
         // ⬇️ TEST REJESTRACJI UŻYTKOWNIKA — tylko raz, na starcie
-        testUserRegistration();
+
 
         // Obsługa kliknięcia przycisku Zaloguj
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -49,8 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void testUserRegistration() {
         User testUser = new User();
-        testUser.firstName = "Testowy21";
-        testUser.lastName = "Użytkownik37";
+        testUser.firstName = "Testowy211";
+        testUser.lastName = "Użytkownik371";
         testUser.email = "norbert" + System.currentTimeMillis() + "@sigma.com";
         testUser.passwordHash = "haslo1663";
         testUser.gender = "male";
