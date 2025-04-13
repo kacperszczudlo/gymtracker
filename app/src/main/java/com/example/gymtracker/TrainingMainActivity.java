@@ -176,31 +176,31 @@ public class TrainingMainActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             Exercise exercise = exercises.get(position);
             holder.exerciseNameTextView.setText(exercise.getName());
-            holder.setsEditText.setText(String.valueOf(exercise.getSets()));
-            holder.repsEditText.setText(String.valueOf(exercise.getReps()));
-
-            holder.setsEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    try {
-                        int sets = Integer.parseInt(holder.setsEditText.getText().toString());
-                        exercise.setSets(sets);
-                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), sets, exercise.getReps());
-                    } catch (NumberFormatException e) {
-                        exercise.setSets(0);
-                        holder.setsEditText.setText("0");
-                    }
-                }
-            });
+            holder.repsEditText.setText(String.valueOf(exercise.getSets()));
+            holder.weightEditText.setText(String.valueOf(exercise.getReps()));
 
             holder.repsEditText.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
                     try {
-                        int reps = Integer.parseInt(holder.repsEditText.getText().toString());
+                        int sets = Integer.parseInt(holder.repsEditText.getText().toString());
+                        exercise.setSets(sets);
+                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), sets, exercise.getReps());
+                    } catch (NumberFormatException e) {
+                        exercise.setSets(0);
+                        holder.repsEditText.setText("0");
+                    }
+                }
+            });
+
+            holder.weightEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        int reps = Integer.parseInt(holder.weightEditText.getText().toString());
                         exercise.setReps(reps);
                         dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), reps);
                     } catch (NumberFormatException e) {
                         exercise.setReps(0);
-                        holder.repsEditText.setText("0");
+                        holder.weightEditText.setText("0");
                     }
                 }
             });
@@ -218,15 +218,15 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText setsEditText, repsEditText;
+            EditText repsEditText, weightEditText;
             Button removeButton;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
-                setsEditText = itemView.findViewById(R.id.setsEditText);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
-                removeButton = itemView.findViewById(R.id.removeExerciseButton);
+                weightEditText = itemView.findViewById(R.id.weightEditText);
+                removeButton = itemView.findViewById(R.id.removeSeriesButton);
             }
         }
     }
@@ -251,8 +251,8 @@ public class TrainingMainActivity extends AppCompatActivity {
             TrainingDay trainingDay = trainingDays.get(position);
             String day = trainingDay.getDay();
             holder.exerciseNameTextView.setText(day);
-            holder.setsEditText.setVisibility(View.GONE);
             holder.repsEditText.setVisibility(View.GONE);
+            holder.weightEditText.setVisibility(View.GONE);
             holder.removeButton.setVisibility(View.GONE);
         }
 
@@ -263,15 +263,15 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         public class ViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText setsEditText, repsEditText;
+            EditText repsEditText, weightEditText;
             Button removeButton;
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
-                setsEditText = itemView.findViewById(R.id.setsEditText);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
-                removeButton = itemView.findViewById(R.id.removeExerciseButton);
+                weightEditText = itemView.findViewById(R.id.weightEditText);
+                removeButton = itemView.findViewById(R.id.removeSeriesButton);
             }
         }
     }
