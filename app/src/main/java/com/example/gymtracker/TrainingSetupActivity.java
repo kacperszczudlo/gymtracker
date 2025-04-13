@@ -3,7 +3,6 @@ package com.example.gymtracker;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,8 +14,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
 
     private TextView trainingTitleTextView, exercise1TextView, exercise2TextView, exercise3TextView, exercise4TextView, exercise5TextView;
     private Button addExerciseButton, nextButton;
-    private ArrayList<String> selectedDays;
-    private int currentDayIndex = 0;
+    private String selectedDay;
     private DatabaseHelper dbHelper;
     private ArrayList<String> exercises;
 
@@ -35,21 +33,21 @@ public class TrainingSetupActivity extends AppCompatActivity {
         addExerciseButton = findViewById(R.id.addExerciseButton);
         nextButton = findViewById(R.id.nextButton);
 
-        // Odbierz wybrane dni z poprzedniej aktywności
+        // Odbierz wybrany dzień z Intent
         Intent intent = getIntent();
-        selectedDays = intent.getStringArrayListExtra("selectedDays");
-        if (selectedDays == null || selectedDays.isEmpty()) {
-            Toast.makeText(this, "Brak wybranych dni", Toast.LENGTH_SHORT).show();
+        selectedDay = intent.getStringExtra("selectedDay");
+        if (selectedDay == null) {
+            Toast.makeText(this, "Błąd: Nie wybrano dnia", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
+        // Ustaw nagłówek dla wybranego dnia
+        trainingTitleTextView.setText("Trening - " + selectedDay);
+
         // Inicjalizacja bazy danych
         dbHelper = new DatabaseHelper(this);
         exercises = dbHelper.getAllExercises();
-
-        // Ustaw nagłówek dla pierwszego dnia
-        updateTrainingTitle();
 
         // Obsługa kliknięć w ćwiczenia
         exercise1TextView.setOnClickListener(v -> showExerciseSelectionDialog(exercise1TextView));
@@ -66,39 +64,14 @@ public class TrainingSetupActivity extends AppCompatActivity {
                 return;
             }
 
-            // Przejdź do kolejnego dnia
-            currentDayIndex++;
-            if (currentDayIndex < selectedDays.size()) {
-                updateTrainingTitle();
-                resetExercises();
-            } else {
-                Toast.makeText(this, "Konfiguracja treningów zakończona!", Toast.LENGTH_LONG).show();
-                // Tutaj możesz przejść do kolejnej aktywności, np.:
-                // Intent nextIntent = new Intent(TrainingSetupActivity.this, MainActivity.class);
-                // startActivity(nextIntent);
-                finish();
-            }
+            // Zapisz ćwiczenia
+            saveExercises();
         });
 
         // Przycisk DODAJ ĆWICZENIE (opcjonalny, w tym przykładzie nieaktywny)
         addExerciseButton.setOnClickListener(v -> {
             Toast.makeText(this, "Funkcjonalność dodawania ćwiczeń nie jest jeszcze zaimplementowana", Toast.LENGTH_SHORT).show();
         });
-    }
-
-    // Aktualizuj nagłówek w zależności od bieżącego dnia
-    private void updateTrainingTitle() {
-        String day = selectedDays.get(currentDayIndex);
-        trainingTitleTextView.setText("Trening " + (currentDayIndex + 1) + " " + day);
-    }
-
-    // Resetuj ćwiczenia do domyślnych wartości
-    private void resetExercises() {
-        exercise1TextView.setText("Ćwiczenie 1");
-        exercise2TextView.setText("Ćwiczenie 1");
-        exercise3TextView.setText("Ćwiczenie 1");
-        exercise4TextView.setText("Ćwiczenie 1");
-        exercise5TextView.setText("Ćwiczenie 1");
     }
 
     // Sprawdź, czy jakieś ćwiczenie nie zostało wybrane
@@ -128,5 +101,27 @@ public class TrainingSetupActivity extends AppCompatActivity {
 
         builder.setNegativeButton("Anuluj", null);
         builder.show();
+    }
+
+    // Funkcja do zapisywania ćwiczeń do bazy danych
+    private void saveExercises() {
+        ArrayList<String> selectedExercises = new ArrayList<>();
+        selectedExercises.add(exercise1TextView.getText().toString());
+        selectedExercises.add(exercise2TextView.getText().toString());
+        selectedExercises.add(exercise3TextView.getText().toString());
+        selectedExercises.add(exercise4TextView.getText().toString());
+        selectedExercises.add(exercise5TextView.getText().toString());
+
+        // Zapisz ćwiczenia w bazie danych
+        boolean success = dbHelper.saveTrainingDay(selectedDay, selectedExercises);
+        if (success) {
+            Toast.makeText(this, "Zapisano ćwiczenia dla " + selectedDay, Toast.LENGTH_SHORT).show();
+            Intent resultIntent = new Intent();
+            resultIntent.putExtra("selectedDay", selectedDay);
+            setResult(RESULT_OK, resultIntent);
+            finish();
+        } else {
+            Toast.makeText(this, "Błąd podczas zapisywania ćwiczeń", Toast.LENGTH_SHORT).show();
+        }
     }
 }
