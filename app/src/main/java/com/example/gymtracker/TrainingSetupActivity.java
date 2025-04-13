@@ -71,7 +71,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
             String exerciseName = newExerciseEditText.getText().toString().trim();
             if (!exerciseName.isEmpty()) {
                 // Dodaj nowe ćwiczenie z domyślnymi wartościami
-                Exercise newExercise = new Exercise(exerciseName, 8, 3); // Domyślne: 8 powtórzeń, 3 serie
+                Exercise newExercise = new Exercise(exerciseName, 0, 0); //
                 exerciseList.add(newExercise);
                 exerciseAdapter.notifyItemInserted(exerciseList.size() - 1);
 

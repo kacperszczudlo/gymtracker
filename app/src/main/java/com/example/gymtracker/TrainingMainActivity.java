@@ -117,7 +117,7 @@ public class TrainingMainActivity extends AppCompatActivity {
             holder.addSeriesButton.setVisibility(View.VISIBLE);
             holder.addSeriesButton.setOnClickListener(v -> {
                 // Dodaj nową serię do bieżącego ćwiczenia
-                Series newSeries = new Series(8, 0); // Domyślne wartości: 8 powtórzeń, 0 kg
+                Series newSeries = new Series(0, 0); // Domyślne wartości: 0 powtórzeń, 0 kg
                 exercise.addSeries(newSeries);
 
                 // Zaktualizuj bazę danych
