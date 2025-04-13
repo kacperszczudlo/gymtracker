@@ -11,154 +11,90 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class TrainingMainActivity extends AppCompatActivity {
 
-    private RecyclerView recyclerView;
     private TextView trainingTitleTextView;
-    private Button addSeriesButton;
-    private DatabaseHelper dbHelper;
+    private RecyclerView exerciseRecyclerView;
     private List<Exercise> exerciseList;
-    private List<TrainingDay> trainingDayList;
-    private boolean showingExercisesForToday = true;
-    private long currentTrainingDayId = -1;
-
-    // TextViews for the calendar
-    private TextView[] calendarDays;
+    private ExerciseAdapter exerciseAdapter;
+    private DatabaseHelper dbHelper;
+    private long currentTrainingDayId;
+    private String currentDayName;
+    private List<String> trainingDayList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.trainingmainactivity);
 
-        // Inicjalizacja elementów UI
-        recyclerView = findViewById(R.id.exerciseRecyclerView);
         trainingTitleTextView = findViewById(R.id.trainingTitleTextView);
-        addSeriesButton = findViewById(R.id.addSeriesButton);
-
-        // Inicjalizacja TextView dla kalendarza
-        calendarDays = new TextView[]{
-                findViewById(R.id.day1),
-                findViewById(R.id.day2),
-                findViewById(R.id.day3),
-                findViewById(R.id.day4),
-                findViewById(R.id.day5),
-                findViewById(R.id.day6),
-                findViewById(R.id.day7)
-        };
-
-        // Inicjalizacja bazy danych
+        exerciseRecyclerView = findViewById(R.id.exerciseRecyclerView);
         dbHelper = new DatabaseHelper(this);
 
-        // Pobierz aktualny dzień tygodnia
-        String today = getCurrentDayOfWeek();
-        currentTrainingDayId = dbHelper.getTrainingDayId(today);
+        // Pobierz ID i nazwę dnia z Intent
+        currentTrainingDayId = getIntent().getLongExtra("DAY_ID", -1);
+        currentDayName = getIntent().getStringExtra("DAY_NAME");
 
-        // Pobierz ćwiczenia dla dzisiejszego dnia
-        exerciseList = dbHelper.getExercisesForDay(today);
+        // Jeśli nie ma ID z Intent, użyj dzisiejszej daty
+        if (currentTrainingDayId == -1) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String today = sdf.format(new Date());
+            currentTrainingDayId = dbHelper.getTrainingDayId(today);
+            currentDayName = today;
+        }
 
-        // Pobierz wszystkie dni z ćwiczeniami
-        trainingDayList = dbHelper.getAllTrainingDays();
-
-        // Ustaw nagłówek (bez daty, bo kalendarz ją pokazuje)
-        if (!exerciseList.isEmpty()) {
-            trainingTitleTextView.setText("Trening");
-            showingExercisesForToday = true;
-        } else {
+        if (currentTrainingDayId == -1) {
             trainingTitleTextView.setText("Brak treningu na dziś");
-            showingExercisesForToday = false;
-        }
-
-        // Ustaw daty w kalendarzu
-        setupCalendar();
-
-        // Inicjalizacja RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        updateRecyclerView();
-
-        // Obsługa przycisku "Dodaj serię"
-        addSeriesButton.setOnClickListener(v -> {
-            if (showingExercisesForToday && !exerciseList.isEmpty()) {
-                for (Exercise exercise : exerciseList) {
-                    exercise.setSets(exercise.getSets() + 1);
-                    dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), exercise.getReps());
-                }
-                recyclerView.getAdapter().notifyDataSetChanged();
-            }
-        });
-    }
-
-    // Pobierz aktualny dzień tygodnia
-    private String getCurrentDayOfWeek() {
-        Calendar calendar = Calendar.getInstance();
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        switch (dayOfWeek) {
-            case Calendar.MONDAY:
-                return "Poniedziałek";
-            case Calendar.TUESDAY:
-                return "Wtorek";
-            case Calendar.WEDNESDAY:
-                return "Środa";
-            case Calendar.THURSDAY:
-                return "Czwartek";
-            case Calendar.FRIDAY:
-                return "Piątek";
-            case Calendar.SATURDAY:
-                return "Sobota";
-            case Calendar.SUNDAY:
-                return "Niedziela";
-            default:
-                return "";
-        }
-    }
-
-    // Ustaw daty w kalendarzu
-    private void setupCalendar() {
-        // Pobierz aktualną datę z urządzenia
-        Calendar calendar = Calendar.getInstance();
-        int currentDayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-        int currentMonth = calendar.get(Calendar.MONTH);
-        int currentYear = calendar.get(Calendar.YEAR);
-
-        // Ustaw kalendarz na początek bieżącego tygodnia (poniedziałek)
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-        int daysToSubtract = (dayOfWeek == Calendar.SUNDAY) ? 6 : dayOfWeek - Calendar.MONDAY;
-        calendar.add(Calendar.DAY_OF_MONTH, -daysToSubtract);
-
-        // Ustaw daty dla każdego dnia tygodnia (poniedziałek do niedzieli)
-        for (int i = 0; i < 7; i++) {
-            int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-            calendarDays[i].setText(String.valueOf(dayOfMonth));
-
-            // Podświetl aktualny dzień
-            if (dayOfMonth == currentDayOfMonth &&
-                    calendar.get(Calendar.MONTH) == currentMonth &&
-                    calendar.get(Calendar.YEAR) == currentYear) {
-                calendarDays[i].setBackgroundResource(R.drawable.calendar_selected_background);
-            } else {
-                calendarDays[i].setBackground(null);
-            }
-
-            // Przejdź do następnego dnia
-            calendar.add(Calendar.DAY_OF_MONTH, 1);
-        }
-    }
-
-    // Aktualizuj RecyclerView w zależności od trybu
-    private void updateRecyclerView() {
-        if (showingExercisesForToday && !exerciseList.isEmpty()) {
-            recyclerView.setAdapter(new ExerciseAdapter(exerciseList));
         } else {
-            recyclerView.setAdapter(new TrainingDayAdapter(trainingDayList));
+            trainingTitleTextView.setText(currentDayName != null ? currentDayName : "Trening " + currentTrainingDayId);
+        }
+
+        // Inicjalizacja listy ćwiczeń
+        exerciseList = new ArrayList<>();
+        loadExercises();
+
+        exerciseAdapter = new ExerciseAdapter(exerciseList);
+        exerciseRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        exerciseRecyclerView.setAdapter(exerciseAdapter);
+
+        // Ustawienie listenerów dla dni w kalendarzu
+        setupCalendarListeners();
+    }
+
+    private void loadExercises() {
+        exerciseList.clear();
+        List<Exercise> exercises = dbHelper.getExercisesForDay(currentDayName);
+        exerciseList.addAll(exercises);
+    }
+
+    private void setupCalendarListeners() {
+        trainingDayList = dbHelper.getAllTrainingDays().stream()
+                .map(day -> day.getDay())
+                .collect(java.util.stream.Collectors.toList());
+        int[] dayIds = {R.id.day1, R.id.day2, R.id.day3, R.id.day4, R.id.day5, R.id.day6, R.id.day7};
+        for (int i = 0; i < dayIds.length && i < trainingDayList.size(); i++) {
+            TextView dayView = findViewById(dayIds[i]);
+            String day = trainingDayList.get(i);
+            dayView.setText(day.substring(0, 3)); // Wyświetl skróconą nazwę (np. "Pon")
+            int finalI = i;
+            dayView.setOnClickListener(v -> {
+                currentDayName = trainingDayList.get(finalI);
+                currentTrainingDayId = dbHelper.getTrainingDayId(currentDayName);
+                trainingTitleTextView.setText(currentDayName);
+                loadExercises();
+                exerciseAdapter.notifyDataSetChanged();
+            });
         }
     }
 
     // Adapter dla ćwiczeń
-    private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHolder> {
+    private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ExerciseViewHolder> {
         private List<Exercise> exercises;
 
         public ExerciseAdapter(List<Exercise> exercises) {
@@ -167,48 +103,35 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public ExerciseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.exercise_item, parent, false);
-            return new ViewHolder(view);
+            return new ExerciseViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull ExerciseViewHolder holder, int position) {
             Exercise exercise = exercises.get(position);
             holder.exerciseNameTextView.setText(exercise.getName());
-            holder.repsEditText.setText(String.valueOf(exercise.getSets()));
-            holder.weightEditText.setText(String.valueOf(exercise.getReps()));
 
-            holder.repsEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    try {
-                        int sets = Integer.parseInt(holder.repsEditText.getText().toString());
-                        exercise.setSets(sets);
-                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), sets, exercise.getReps());
-                    } catch (NumberFormatException e) {
-                        exercise.setSets(0);
-                        holder.repsEditText.setText("0");
-                    }
-                }
+            // Pokaż przycisk "Dodaj serię" i ustaw jego widoczność
+            holder.addSeriesButton.setVisibility(View.VISIBLE);
+            holder.addSeriesButton.setOnClickListener(v -> {
+                // Dodaj nową serię do bieżącego ćwiczenia
+                Series newSeries = new Series(8, 0); // Domyślne wartości: 8 powtórzeń, 0 kg
+                exercise.addSeries(newSeries);
+
+                // Zaktualizuj bazę danych
+                dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), newSeries.getReps());
+
+                // Odśwież widok serii
+                holder.seriesRecyclerView.getAdapter().notifyDataSetChanged();
             });
 
-            holder.weightEditText.setOnFocusChangeListener((v, hasFocus) -> {
-                if (!hasFocus) {
-                    try {
-                        int reps = Integer.parseInt(holder.weightEditText.getText().toString());
-                        exercise.setReps(reps);
-                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), reps);
-                    } catch (NumberFormatException e) {
-                        exercise.setReps(0);
-                        holder.weightEditText.setText("0");
-                    }
-                }
-            });
-
-            holder.removeButton.setOnClickListener(v -> {
-                exercises.remove(position);
-                notifyItemRemoved(position);
-            });
+            // Ustaw adapter dla serii
+            holder.seriesRecyclerView.setVisibility(View.VISIBLE);
+            SeriesAdapter seriesAdapter = new SeriesAdapter(exercise.getSeriesList(), exercise);
+            holder.seriesRecyclerView.setLayoutManager(new LinearLayoutManager(TrainingMainActivity.this));
+            holder.seriesRecyclerView.setAdapter(seriesAdapter);
         }
 
         @Override
@@ -216,62 +139,97 @@ public class TrainingMainActivity extends AppCompatActivity {
             return exercises.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        class ExerciseViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText repsEditText, weightEditText;
-            Button removeButton;
+            Button addSeriesButton;
+            RecyclerView seriesRecyclerView;
 
-            public ViewHolder(@NonNull View itemView) {
+            public ExerciseViewHolder(@NonNull View itemView) {
                 super(itemView);
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
-                repsEditText = itemView.findViewById(R.id.repsEditText);
-                weightEditText = itemView.findViewById(R.id.weightEditText);
-                removeButton = itemView.findViewById(R.id.removeSeriesButton);
+                addSeriesButton = itemView.findViewById(R.id.addSeriesButton);
+                seriesRecyclerView = itemView.findViewById(R.id.seriesRecyclerView);
             }
         }
     }
 
-    // Adapter dla dni treningowych
-    private class TrainingDayAdapter extends RecyclerView.Adapter<TrainingDayAdapter.ViewHolder> {
-        private List<TrainingDay> trainingDays;
+    // Adapter dla serii
+    private class SeriesAdapter extends RecyclerView.Adapter<SeriesAdapter.SeriesViewHolder> {
+        private List<Series> seriesList;
+        private Exercise exercise;
 
-        public TrainingDayAdapter(List<TrainingDay> trainingDays) {
-            this.trainingDays = trainingDays;
+        public SeriesAdapter(List<Series> seriesList, Exercise exercise) {
+            this.seriesList = seriesList;
+            this.exercise = exercise;
         }
 
         @NonNull
         @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.exercise_item, parent, false);
-            return new ViewHolder(view);
+        public SeriesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.series_item, parent, false);
+            return new SeriesViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            TrainingDay trainingDay = trainingDays.get(position);
-            String day = trainingDay.getDay();
-            holder.exerciseNameTextView.setText(day);
-            holder.repsEditText.setVisibility(View.GONE);
-            holder.weightEditText.setVisibility(View.GONE);
-            holder.removeButton.setVisibility(View.GONE);
+        public void onBindViewHolder(@NonNull SeriesViewHolder holder, int position) {
+            Series series = seriesList.get(position);
+            holder.repsEditText.setText(String.valueOf(series.getReps()));
+            holder.weightEditText.setText(String.valueOf(series.getWeight()));
+
+            // Obsługa edycji liczby powtórzeń
+            holder.repsEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        int reps = Integer.parseInt(holder.repsEditText.getText().toString());
+                        series.setReps(reps);
+                        // Zaktualizuj bazę danych
+                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), reps);
+                    } catch (NumberFormatException e) {
+                        series.setReps(0);
+                        holder.repsEditText.setText("0");
+                    }
+                }
+            });
+
+            // Obsługa edycji ciężaru
+            holder.weightEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        int weight = Math.round(Float.parseFloat(holder.weightEditText.getText().toString()));
+                        series.setWeight(weight);
+                        // Zaktualizuj bazę danych (ciężar nie jest zapisywany w obecnej wersji updateExercise, można rozszerzyć metodę)
+                    } catch (NumberFormatException e) {
+                        series.setWeight(0);
+                        holder.weightEditText.setText("0");
+                    }
+                }
+            });
+
+            // Obsługa przycisku "Usuń serię"
+            holder.removeSeriesButton.setOnClickListener(v -> {
+                seriesList.remove(position);
+                notifyItemRemoved(position);
+                notifyItemRangeChanged(position, seriesList.size());
+                // Zaktualizuj bazę danych
+                dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), exercise.getReps());
+            });
         }
 
         @Override
         public int getItemCount() {
-            return trainingDays.size();
+            return seriesList.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            TextView exerciseNameTextView;
-            EditText repsEditText, weightEditText;
-            Button removeButton;
+        class SeriesViewHolder extends RecyclerView.ViewHolder {
+            EditText repsEditText;
+            EditText weightEditText;
+            Button removeSeriesButton;
 
-            public ViewHolder(@NonNull View itemView) {
+            public SeriesViewHolder(@NonNull View itemView) {
                 super(itemView);
-                exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
                 weightEditText = itemView.findViewById(R.id.weightEditText);
-                removeButton = itemView.findViewById(R.id.removeSeriesButton);
+                removeSeriesButton = itemView.findViewById(R.id.removeSeriesButton);
             }
         }
     }

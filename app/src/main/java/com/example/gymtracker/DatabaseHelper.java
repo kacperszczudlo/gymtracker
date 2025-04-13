@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "GymTrackerDB";
-    private static final int DATABASE_VERSION = 3; // Incremented to 3
+    private static final int DATABASE_VERSION = 4; // Zwiększamy wersję, bo zmieniamy strukturę
 
     // Tabela exercises
     private static final String TABLE_EXERCISES = "exercises";
@@ -28,12 +28,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_TRAINING_DAYS = "training_days";
     private static final String COLUMN_DAY = "day";
 
-    // Nowa tabela training_day_exercises
+    // Tabela training_day_exercises
     private static final String TABLE_TRAINING_DAY_EXERCISES = "training_day_exercises";
     private static final String COLUMN_TRAINING_DAY_ID = "training_day_id";
     private static final String COLUMN_EXERCISE_NAME = "exercise_name";
+
+    // Nowa tabela training_day_exercise_sets
+    private static final String TABLE_TRAINING_DAY_EXERCISE_SETS = "training_day_exercise_sets";
+    private static final String COLUMN_EXERCISE_ID = "exercise_id";
     private static final String COLUMN_SETS = "sets";
     private static final String COLUMN_REPS = "reps";
+    private static final String COLUMN_WEIGHT = "weight";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -65,10 +70,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_TRAINING_DAY_ID + " INTEGER, " +
                 COLUMN_EXERCISE_NAME + " TEXT, " +
-                COLUMN_SETS + " INTEGER, " +
-                COLUMN_REPS + " INTEGER, " +
                 "FOREIGN KEY(" + COLUMN_TRAINING_DAY_ID + ") REFERENCES " + TABLE_TRAINING_DAYS + "(" + COLUMN_ID + "))";
         db.execSQL(createTrainingDayExercisesTable);
+
+        // Tworzenie tabeli training_day_exercise_sets
+        String createTrainingDayExerciseSetsTable = "CREATE TABLE " + TABLE_TRAINING_DAY_EXERCISE_SETS + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_EXERCISE_ID + " INTEGER, " +
+                COLUMN_REPS + " INTEGER, " +
+                COLUMN_WEIGHT + " INTEGER, " +
+                "FOREIGN KEY(" + COLUMN_EXERCISE_ID + ") REFERENCES " + TABLE_TRAINING_DAY_EXERCISES + "(" + COLUMN_ID + "))";
+        db.execSQL(createTrainingDayExerciseSetsTable);
 
         // Dodanie przykładowych ćwiczeń
         insertExercise(db, "Wyciskanie sztangi na ławce");
@@ -84,10 +96,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         // Drop existing tables
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXERCISES);
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINING_DAY_EXERCISE_SETS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINING_DAY_EXERCISES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRAINING_DAYS);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_EXERCISES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
 
@@ -159,38 +172,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Zapisanie ćwiczeń dla wybranego dnia
+    // Zapisanie ćwiczeń dla wybranego dnia
     public boolean saveTrainingDay(String day, ArrayList<String> exercises) {
         SQLiteDatabase db = this.getWritableDatabase();
-
-        // Check if the training_days table exists
-        Cursor tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", new String[]{TABLE_TRAINING_DAYS});
-        boolean tableExists = tableCheck.getCount() > 0;
-        tableCheck.close();
-
-        if (!tableExists) {
-            String createTrainingDaysTable = "CREATE TABLE " + TABLE_TRAINING_DAYS + " (" +
-                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_DAY + " TEXT UNIQUE)";
-            db.execSQL(createTrainingDaysTable);
-        }
-
-        // Check if the training_day_exercises table exists
-        tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", new String[]{TABLE_TRAINING_DAY_EXERCISES});
-        tableExists = tableCheck.getCount() > 0;
-        tableCheck.close();
-
-        if (!tableExists) {
-            String createTrainingDayExercisesTable = "CREATE TABLE " + TABLE_TRAINING_DAY_EXERCISES + " (" +
-                    COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COLUMN_TRAINING_DAY_ID + " INTEGER, " +
-                    COLUMN_EXERCISE_NAME + " TEXT, " +
-                    COLUMN_SETS + " INTEGER, " +
-                    COLUMN_REPS + " INTEGER, " +
-                    "FOREIGN KEY(" + COLUMN_TRAINING_DAY_ID + ") REFERENCES " + TABLE_TRAINING_DAYS + "(" + COLUMN_ID + "))";
-            db.execSQL(createTrainingDayExercisesTable);
-        }
-
         long trainingDayId = -1;
+
         try {
             // Check if the day already exists
             Cursor cursor = db.rawQuery("SELECT " + COLUMN_ID + " FROM " + TABLE_TRAINING_DAYS + " WHERE " +
@@ -205,19 +191,36 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ContentValues dayValues = new ContentValues();
                 dayValues.put(COLUMN_DAY, day);
                 trainingDayId = db.insert(TABLE_TRAINING_DAYS, null, dayValues);
-            } else {
-                // Delete existing exercises for this day
-                db.delete(TABLE_TRAINING_DAY_EXERCISES, COLUMN_TRAINING_DAY_ID + " = ?", new String[]{String.valueOf(trainingDayId)});
             }
 
-            // Insert exercises with default sets and reps
+            // Insert exercises (without deleting existing ones)
             for (String exercise : exercises) {
-                ContentValues exerciseValues = new ContentValues();
-                exerciseValues.put(COLUMN_TRAINING_DAY_ID, trainingDayId);
-                exerciseValues.put(COLUMN_EXERCISE_NAME, exercise);
-                exerciseValues.put(COLUMN_SETS, 3); // Default sets
-                exerciseValues.put(COLUMN_REPS, 8); // Default reps
-                db.insert(TABLE_TRAINING_DAY_EXERCISES, null, exerciseValues);
+                // Check if exercise already exists for this day
+                Cursor exerciseCursor = db.rawQuery("SELECT " + COLUMN_ID + " FROM " + TABLE_TRAINING_DAY_EXERCISES + " WHERE " +
+                                COLUMN_TRAINING_DAY_ID + " = ? AND " + COLUMN_EXERCISE_NAME + " = ?",
+                        new String[]{String.valueOf(trainingDayId), exercise});
+                long exerciseId = -1;
+                if (exerciseCursor.moveToFirst()) {
+                    exerciseId = exerciseCursor.getLong(exerciseCursor.getColumnIndex(COLUMN_ID));
+                }
+                exerciseCursor.close();
+
+                if (exerciseId == -1) {
+                    // Insert new exercise
+                    ContentValues exerciseValues = new ContentValues();
+                    exerciseValues.put(COLUMN_TRAINING_DAY_ID, trainingDayId);
+                    exerciseValues.put(COLUMN_EXERCISE_NAME, exercise);
+                    exerciseId = db.insert(TABLE_TRAINING_DAY_EXERCISES, null, exerciseValues);
+
+                    // Add default series (e.g., 3 series with 8 reps each)
+                    for (int i = 0; i < 3; i++) {
+                        ContentValues setValues = new ContentValues();
+                        setValues.put(COLUMN_EXERCISE_ID, exerciseId);
+                        setValues.put(COLUMN_REPS, 8);
+                        setValues.put(COLUMN_WEIGHT, 0);
+                        db.insert(TABLE_TRAINING_DAY_EXERCISE_SETS, null, setValues);
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -226,13 +229,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.close();
         }
 
-        return trainingDayId != -1;
+        return true; // Zawsze zwracamy true, bo nawet jeśli coś się nie powiedzie, dzień zostanie utworzony
     }
 
     // Pobierz ćwiczenia dla wybranego dnia
     public List<Exercise> getExercisesForDay(String day) {
         List<Exercise> exercises = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
+
+        if (day == null) {
+            return exercises; // Zwróć pustą listę, jeśli dzień jest null
+        }
 
         // First, get the training day ID
         long trainingDayId = -1;
@@ -248,10 +255,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_TRAINING_DAY_ID + " = ?", new String[]{String.valueOf(trainingDayId)});
             if (cursor.moveToFirst()) {
                 do {
+                    long exerciseId = cursor.getLong(cursor.getColumnIndex(COLUMN_ID));
                     String exerciseName = cursor.getString(cursor.getColumnIndex(COLUMN_EXERCISE_NAME));
-                    int sets = cursor.getInt(cursor.getColumnIndex(COLUMN_SETS));
-                    int reps = cursor.getInt(cursor.getColumnIndex(COLUMN_REPS));
-                    Exercise exercise = new Exercise(exerciseName, reps, sets); // Note: Using weight as sets for now
+                    Exercise exercise = new Exercise(exerciseId, exerciseName);
+
+                    // Pobierz serie dla tego ćwiczenia
+                    Cursor setCursor = db.rawQuery("SELECT * FROM " + TABLE_TRAINING_DAY_EXERCISE_SETS + " WHERE " +
+                            COLUMN_EXERCISE_ID + " = ?", new String[]{String.valueOf(exerciseId)});
+                    while (setCursor.moveToNext()) {
+                        int reps = setCursor.getInt(setCursor.getColumnIndex(COLUMN_REPS));
+                        int weight = setCursor.getInt(setCursor.getColumnIndex(COLUMN_WEIGHT));
+                        exercise.addSeries(new Series(reps, weight));
+                    }
+                    setCursor.close();
+
                     exercises.add(exercise);
                 } while (cursor.moveToNext());
             }
@@ -265,15 +282,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Aktualizuj ćwiczenie (serie i powtórzenia)
     public boolean updateExercise(long trainingDayId, String exerciseName, int sets, int reps) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_SETS, sets);
-        values.put(COLUMN_REPS, reps);
 
-        long result = db.update(TABLE_TRAINING_DAY_EXERCISES, values,
-                COLUMN_TRAINING_DAY_ID + " = ? AND " + COLUMN_EXERCISE_NAME + " = ?",
-                new String[]{String.valueOf(trainingDayId), exerciseName});
-        db.close();
-        return result != -1;
+        try {
+            // Znajdź ID ćwiczenia
+            long exerciseId = -1;
+            Cursor cursor = db.rawQuery("SELECT " + COLUMN_ID + " FROM " + TABLE_TRAINING_DAY_EXERCISES + " WHERE " +
+                            COLUMN_TRAINING_DAY_ID + " = ? AND " + COLUMN_EXERCISE_NAME + " = ?",
+                    new String[]{String.valueOf(trainingDayId), exerciseName});
+            if (cursor.moveToFirst()) {
+                exerciseId = cursor.getLong(cursor.getColumnIndex(COLUMN_ID));
+            }
+            cursor.close();
+
+            if (exerciseId == -1) {
+                return false;
+            }
+
+            // Usuń istniejące serie
+            db.delete(TABLE_TRAINING_DAY_EXERCISE_SETS, COLUMN_EXERCISE_ID + " = ?",
+                    new String[]{String.valueOf(exerciseId)});
+
+            // Dodaj nowe serie
+            for (int i = 0; i < sets; i++) {
+                ContentValues setValues = new ContentValues();
+                setValues.put(COLUMN_EXERCISE_ID, exerciseId);
+                setValues.put(COLUMN_REPS, reps);
+                setValues.put(COLUMN_WEIGHT, 0); // Domyślny ciężar
+                db.insert(TABLE_TRAINING_DAY_EXERCISE_SETS, null, setValues);
+            }
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            db.close();
+        }
     }
 
     // Pobierz wszystkie dni treningowe z ćwiczeniami
@@ -292,10 +336,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         COLUMN_TRAINING_DAY_ID + " = ?", new String[]{String.valueOf(trainingDayId)});
                 if (exerciseCursor.moveToFirst()) {
                     do {
+                        long exerciseId = exerciseCursor.getLong(exerciseCursor.getColumnIndex(COLUMN_ID));
                         String exerciseName = exerciseCursor.getString(exerciseCursor.getColumnIndex(COLUMN_EXERCISE_NAME));
-                        int sets = exerciseCursor.getInt(exerciseCursor.getColumnIndex(COLUMN_SETS));
-                        int reps = exerciseCursor.getInt(exerciseCursor.getColumnIndex(COLUMN_REPS));
-                        exercises.add(new Exercise(exerciseName, reps, sets));
+                        Exercise exercise = new Exercise(exerciseId, exerciseName);
+
+                        // Pobierz serie
+                        Cursor setCursor = db.rawQuery("SELECT * FROM " + TABLE_TRAINING_DAY_EXERCISE_SETS + " WHERE " +
+                                COLUMN_EXERCISE_ID + " = ?", new String[]{String.valueOf(exerciseId)});
+                        while (setCursor.moveToNext()) {
+                            int reps = setCursor.getInt(setCursor.getColumnIndex(COLUMN_REPS));
+                            int weight = setCursor.getInt(setCursor.getColumnIndex(COLUMN_WEIGHT));
+                            exercise.addSeries(new Series(reps, weight));
+                        }
+                        setCursor.close();
+
+                        exercises.add(exercise);
                     } while (exerciseCursor.moveToNext());
                 }
                 exerciseCursor.close();

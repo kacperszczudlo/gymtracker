@@ -6,102 +6,187 @@
     android:padding="16dp"
     android:background="#212121">
 
-    <!-- Nagłówek -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="WYBIERZ DNI TRENINGOWE"
+        android:text="Wybierz dzień treningowy"
         android:textSize="24sp"
         android:textColor="#FFFFFF"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="16dp"/>
 
-    <!-- Przyciski dni tygodnia -->
-    <Button
-        android:id="@+id/mondayButton"
+    <!-- Poniedziałek -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Poniedziałek"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day1TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Poniedziałek"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day1Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/tuesdayButton"
+    <!-- Wtorek -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Wtorek"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day2TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Wtorek"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day2Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/wednesdayButton"
+    <!-- Środa -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Środa"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day3TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Środa"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day3Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/thursdayButton"
+    <!-- Czwartek -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Czwartek"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day4TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Czwartek"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day4Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/fridayButton"
+    <!-- Piątek -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Piątek"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day5TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Piątek"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day5Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/saturdayButton"
+    <!-- Sobota -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Sobota"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day6TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Sobota"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day6Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/sundayButton"
+    <!-- Niedziela -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Niedziela"
-        android:backgroundTint="#616161"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"
-        android:layout_marginBottom="32dp"/>
-
-    <!-- Przycisk DALEJ -->
-    <Button
-        android:id="@+id/nextButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="DALEJ"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:textSize="16sp"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
+        <TextView
+            android:id="@+id/day7TextView"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Niedziela"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+        <Button
+            android:id="@+id/day7Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wybierz"
+            android:backgroundTint="#4CAF50"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"/>
+    </LinearLayout>
 
 </LinearLayout>
