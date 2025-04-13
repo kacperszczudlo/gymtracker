@@ -19,22 +19,17 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Inicjalizacja elementów UI
         usernameEditText = findViewById(R.id.usernameEditText);
         passwordEditText = findViewById(R.id.passwordEditText);
         loginButton = findViewById(R.id.loginButton);
+        dbHelper = new DatabaseHelper(this);
 
-        // Sprawdzenie, czy elementy UI zostały poprawnie zainicjalizowane
         if (usernameEditText == null || passwordEditText == null || loginButton == null) {
             Toast.makeText(this, "Błąd: Nie znaleziono elementów UI", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
-        // Inicjalizacja bazy danych
-        dbHelper = new DatabaseHelper(this);
-
-        // Obsługa kliknięcia przycisku Zaloguj
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -52,9 +47,9 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 // Sprawdzenie danych logowania w bazie danych
-                if (dbHelper.checkUser (username, password)) {
+                if (dbHelper.checkUser(username, password)) {
                     Toast.makeText(LoginActivity.this, "Logowanie pomyślne!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, TrainingDaysActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, TrainingMainActivity.class);
                     startActivity(intent);
                     finish();
                 } else {
