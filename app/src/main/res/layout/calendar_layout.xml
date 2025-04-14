@@ -1,80 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.recyclerview.widget.RecyclerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/weekDaysRecyclerView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
     android:orientation="horizontal"
-    android:gravity="center"
-    android:padding="8dp"
-    android:layout_marginBottom="16dp">
-
-    <TextView
-        android:id="@+id/day1"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="22"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day2"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="23"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day3"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="24"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day4"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="25"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:background="@drawable/calendar_selected_background"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day5"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="26"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day6"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="27"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"
-        android:layout_marginEnd="4dp"/>
-
-    <TextView
-        android:id="@+id/day7"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="28"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:gravity="center"/>
-
-</LinearLayout>
+    android:overScrollMode="never"/>

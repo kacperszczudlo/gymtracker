@@ -3,64 +3,54 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="@drawable/exercise_item_background"
-    android:padding="12dp"
-    android:layout_marginBottom="8dp">
+    android:padding="8dp"
+    android:background="#424242">
 
-    <!-- Nazwa ćwiczenia -->
     <TextView
         android:id="@+id/exerciseNameTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Ćwiczenie 1"
+        android:text="Przysiady"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        android:layout_gravity="center_vertical"/>
+        android:paddingEnd="8dp"/>
 
-    <!-- Pole na liczbę serii -->
     <EditText
         android:id="@+id/setsEditText"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:hint="Serie"
+        android:inputType="number"
         android:textColor="#FFFFFF"
         android:textColorHint="#B0B0B0"
-        android:background="@android:color/transparent"
-        android:gravity="center"
-        android:inputType="number"
-        android:padding="8dp"
-        android:layout_marginStart="8dp"/>
+        android:backgroundTint="#4CAF50"
+        android:textSize="14sp"/>
 
-    <!-- Pole na liczbę powtórzeń -->
     <EditText
         android:id="@+id/repsEditText"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:hint="Powt."
+        android:inputType="number"
         android:textColor="#FFFFFF"
         android:textColorHint="#B0B0B0"
-        android:background="@android:color/transparent"
-        android:gravity="center"
-        android:inputType="number"
-        android:padding="8dp"
+        android:backgroundTint="#4CAF50"
+        android:textSize="14sp"
         android:layout_marginStart="8dp"/>
 
-    <!-- Nowe pole na wagę (dla zestawu) -->
     <EditText
         android:id="@+id/weightEditText"
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:hint="Waga"
+        android:hint="Ciężar"
+        android:inputType="numberDecimal"
         android:textColor="#FFFFFF"
         android:textColorHint="#B0B0B0"
-        android:background="@android:color/transparent"
-        android:gravity="center"
-        android:inputType="numberDecimal"
-        android:padding="8dp"
+        android:backgroundTint="#4CAF50"
+        android:textSize="14sp"
         android:layout_marginStart="8dp"/>
 
-    <!-- Przycisk "X" -->
     <Button
         android:id="@+id/removeExerciseButton"
         android:layout_width="40dp"

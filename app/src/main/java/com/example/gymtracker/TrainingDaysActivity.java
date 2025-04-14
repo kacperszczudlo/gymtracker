@@ -59,8 +59,7 @@ public class TrainingDaysActivity extends AppCompatActivity {
             if (!isSelected) {
                 selectedDays.add(dayName);
                 button.setBackgroundTintList(getResources().getColorStateList(R.color.green, null));
-                // Zapisujemy dzień w bazie i przechodzimy do TrainingSetupActivity
-                int userId = 1; // Zakładamy, że userId to 1 (admin), w przyszłości pobierz dynamicznie
+                int userId = 1; // Zakładamy userId=1, w przyszłości pobierz dynamicznie
                 long dayId = dbHelper.getTrainingDayId(userId, dayName);
                 if (dayId == -1) {
                     dayId = dbHelper.saveTrainingDay(userId, dayName);
@@ -72,6 +71,12 @@ public class TrainingDaysActivity extends AppCompatActivity {
             } else {
                 selectedDays.remove(dayName);
                 button.setBackgroundTintList(getResources().getColorStateList(R.color.grey, null));
+                // Opcjonalnie: usuń dzień z bazy, jeśli nie ma przypisanych ćwiczeń
+                int userId = 1;
+                long dayId = dbHelper.getTrainingDayId(userId, dayName);
+                if (dayId != -1 && dbHelper.getDayExercises(dayId).getCount() == 0) {
+                    dbHelper.deleteTrainingDay(dayId);
+                }
             }
         });
     }

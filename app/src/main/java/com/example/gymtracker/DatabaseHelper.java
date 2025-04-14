@@ -212,4 +212,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         long result = db.insert(TABLE_DAY_EXERCISES, null, values);
         return result != -1;
     }
+
+    // Pobieranie ćwiczeń dla danego dnia
+    public Cursor getDayExercises(long dayId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.query(TABLE_DAY_EXERCISES,
+                new String[]{COLUMN_DAY_EXERCISE_NAME, COLUMN_DAY_EXERCISE_SETS, COLUMN_DAY_EXERCISE_REPS, COLUMN_DAY_EXERCISE_WEIGHT},
+                COLUMN_DAY_EXERCISE_DAY_ID + "=?",
+                new String[]{String.valueOf(dayId)},
+                null, null, null);
+    }
+
+    // Usuwanie ćwiczenia dla danego dnia
+    public boolean deleteDayExercise(long dayId, String exerciseName) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_DAY_EXERCISES,
+                COLUMN_DAY_EXERCISE_DAY_ID + "=? AND " + COLUMN_DAY_EXERCISE_NAME + "=?",
+                new String[]{String.valueOf(dayId), exerciseName});
+        return result > 0;
+    }
+
+    // Usuwanie wszystkich ćwiczeń dla danego dnia
+    public boolean deleteDayExercises(long dayId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        int result = db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
+        return result > 0;
+    }
+
+    // Usuwanie dnia treningowego
+    public boolean deleteTrainingDay(long dayId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        // Najpierw usuń wszystkie ćwiczenia dla tego dnia
+        db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
+        // Następnie usuń dzień
+        int result = db.delete(TABLE_TRAINING_DAYS, COLUMN_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
+        return result > 0;
+    }
 }

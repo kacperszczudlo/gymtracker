@@ -11,18 +11,26 @@
         android:id="@+id/trainingTitleTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TRENING 1"
+        android:text="TRENING"
         android:textColor="#FFFFFF"
         android:textSize="24sp"
         android:padding="16dp"
         android:gravity="center"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Include the calendar layout -->
     <include
         layout="@layout/calendar_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/editButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edytuj trening"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
         android:layout_marginBottom="16dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -31,5 +39,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingBottom="16dp"
-        tools:listitem="@layout/workout_item"/>
+        tools:listitem="@layout/exercise_item"/>
 </LinearLayout>
