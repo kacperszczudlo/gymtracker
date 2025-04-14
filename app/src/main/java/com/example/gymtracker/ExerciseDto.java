@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 public class ExerciseDto {
     private Integer id;
     private String name;
-    private BigDecimal weight; // Jeśli chcesz przechowywać wagę używaną przy ćwiczeniu
+
 
     // Gettery i settery
 
@@ -25,11 +25,5 @@ public class ExerciseDto {
         this.name = name;
     }
 
-    public BigDecimal getWeight() {
-        return weight;
-    }
 
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
-    }
 }

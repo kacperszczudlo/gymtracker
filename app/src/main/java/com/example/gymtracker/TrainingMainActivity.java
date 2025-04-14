@@ -7,10 +7,14 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -158,8 +162,10 @@ public class TrainingMainActivity extends AppCompatActivity {
     }
 
     // Adapter dla ćwiczeń
-    private class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHolder> {
+    public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHolder> {
         private List<Exercise> exercises;
+        // Lista zbiorcza zestawów – możesz ją zbierać, by później wysłać na backend lub zapisać lokalnie
+        private List<SetDto> setDtoList = new ArrayList<>();
 
         public ExerciseAdapter(List<Exercise> exercises) {
             this.exercises = exercises;
@@ -179,12 +185,41 @@ public class TrainingMainActivity extends AppCompatActivity {
             holder.setsEditText.setText(String.valueOf(exercise.getSets()));
             holder.repsEditText.setText(String.valueOf(exercise.getReps()));
 
+            // Dodaj listener dla pola wagi
+            holder.weightEditText.setOnFocusChangeListener((v, hasFocus) -> {
+                if (!hasFocus) {
+                    try {
+                        int sets = Integer.parseInt(holder.setsEditText.getText().toString().trim());
+                        int reps = Integer.parseInt(holder.repsEditText.getText().toString().trim());
+                        String weightStr = holder.weightEditText.getText().toString().trim();
+                        // Jeśli pole jest puste, przyjmij domyślną wartość np. 0
+                        BigDecimal weight = weightStr.isEmpty() ? BigDecimal.ZERO : new BigDecimal(weightStr);
+
+                        // Utwórz lub zaktualizuj obiekt SetDto dla tego ćwiczenia (indeks position)
+                        SetDto setDto = new SetDto();
+                        setDto.setSetNumber(sets);
+                        setDto.setReps(reps);
+                        setDto.setWeight(weight);
+
+                        // Przechowuj wynik – na przykład zapisz w liście setDtoList (upewnij się, że dla danego position nie powstają duplikaty)
+                        if (position < setDtoList.size()) {
+                            setDtoList.set(position, setDto);
+                        } else {
+                            setDtoList.add(setDto);
+                        }
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(v.getContext(), "Niepoprawne dane zestawu dla ćwiczenia: " + exercise.getName(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+            // (Pozostała logika dla aktualizacji sets, reps oraz usunięcia elementu)
             holder.setsEditText.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
                     try {
-                        int sets = Integer.parseInt(holder.setsEditText.getText().toString());
+                        int sets = Integer.parseInt(holder.setsEditText.getText().toString().trim());
                         exercise.setSets(sets);
-                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), sets, exercise.getReps());
+                        // Zaktualizuj lokalnie lub wywołaj metodę aktualizacji w bazie (jeśli dotyczy)
                     } catch (NumberFormatException e) {
                         exercise.setSets(0);
                         holder.setsEditText.setText("0");
@@ -195,9 +230,8 @@ public class TrainingMainActivity extends AppCompatActivity {
             holder.repsEditText.setOnFocusChangeListener((v, hasFocus) -> {
                 if (!hasFocus) {
                     try {
-                        int reps = Integer.parseInt(holder.repsEditText.getText().toString());
+                        int reps = Integer.parseInt(holder.repsEditText.getText().toString().trim());
                         exercise.setReps(reps);
-                        dbHelper.updateExercise(currentTrainingDayId, exercise.getName(), exercise.getSets(), reps);
                     } catch (NumberFormatException e) {
                         exercise.setReps(0);
                         holder.repsEditText.setText("0");
@@ -216,9 +250,13 @@ public class TrainingMainActivity extends AppCompatActivity {
             return exercises.size();
         }
 
+        public List<SetDto> getSetDtoList() {
+            return setDtoList;
+        }
+
         public class ViewHolder extends RecyclerView.ViewHolder {
             TextView exerciseNameTextView;
-            EditText setsEditText, repsEditText;
+            EditText setsEditText, repsEditText, weightEditText; // Dodane weightEditText
             Button removeButton;
 
             public ViewHolder(@NonNull View itemView) {
@@ -226,10 +264,12 @@ public class TrainingMainActivity extends AppCompatActivity {
                 exerciseNameTextView = itemView.findViewById(R.id.exerciseNameTextView);
                 setsEditText = itemView.findViewById(R.id.setsEditText);
                 repsEditText = itemView.findViewById(R.id.repsEditText);
+                weightEditText = itemView.findViewById(R.id.weightEditText); // Inicjalizacja pola wagi
                 removeButton = itemView.findViewById(R.id.removeExerciseButton);
             }
         }
     }
+
 
     // Adapter dla dni treningowych
     private class TrainingDayAdapter extends RecyclerView.Adapter<TrainingDayAdapter.ViewHolder> {

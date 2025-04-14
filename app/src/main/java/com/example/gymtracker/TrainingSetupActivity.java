@@ -149,11 +149,10 @@ public class TrainingSetupActivity extends AppCompatActivity {
         for (String exName : selectedExercises) {
             ExerciseDto exDto = new ExerciseDto();
             exDto.setName(exName);
-            // Opcjonalnie: ustaw wagę jako null lub domyślną wartość; tutaj ustawimy null
-            exDto.setWeight(null);
             exerciseDtos.add(exDto);
         }
         workoutDto.setExercises(exerciseDtos);
+
 
         // Wywołanie API – używamy Retrofit i metody saveWorkout
         ApiService apiService = RetrofitClient.getApiService();
