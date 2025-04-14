@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:layout_marginVertical="8dp"
+    android:layout_marginHorizontal="16dp"
+    android:background="@drawable/exercise_item_background">
+
+    <TextView
+        android:id="@+id/exerciseNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nazwa ćwiczenia"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:paddingBottom="8dp"/>
+
+    <!-- Przycisk "Dodaj serię" -->
+    <Button
+        android:id="@+id/addSeriesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dodaj serię"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"/> <!-- Początkowo niewidoczny, widoczny tylko w TrainingMainActivity -->
+
+    <!-- RecyclerView dla serii -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/seriesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+</LinearLayout>

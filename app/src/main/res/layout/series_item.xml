@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical">
+
+    <!-- Liczba powtórzeń -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="L. powtórzeń"
+            android:textColor="#B0B0B0"
+            android:textSize="12sp"
+            android:gravity="center"/>
+
+        <EditText
+            android:id="@+id/repsEditText"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:hint="0"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B0B0B0"
+            android:gravity="center"
+            android:inputType="number"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <!-- Ciężar -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ciężar"
+            android:textColor="#B0B0B0"
+            android:textSize="12sp"
+            android:gravity="center"/>
+
+        <EditText
+            android:id="@+id/weightEditText"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:hint="0"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B0B0B0"
+            android:gravity="center"
+            android:inputType="number"
+            android:padding="8dp"/>
+    </LinearLayout>
+
+    <!-- Przycisk "X" -->
+    <Button
+        android:id="@+id/removeSeriesButton"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:text="X"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:background="@drawable/remove_button_background"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Usuń serię"/>
+</LinearLayout>

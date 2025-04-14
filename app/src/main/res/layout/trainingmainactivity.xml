@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="#212121"> <!-- Dark background to match the app's theme -->
+    android:background="#212121">
 
     <TextView
         android:id="@+id/trainingTitleTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Trening - 2025-04-11, Piątek"
+        android:text="TRENING 1"
         android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:paddingBottom="16dp"
-        android:gravity="center"/>
+        android:textSize="24sp"
+        android:padding="16dp"
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
 
     <!-- Include the calendar layout -->
     <include
@@ -30,17 +31,5 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingBottom="16dp"
-        tools:listitem="@layout/exercise_item"/>
-
-    <!-- Przycisk "Dodaj serię" -->
-    <Button
-        android:id="@+id/addSeriesButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Dodaj serię"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:background="@drawable/button_background"
-        android:padding="12dp"
-        android:layout_marginTop="16dp"/>
+        tools:listitem="@layout/workout_item"/>
 </LinearLayout>
