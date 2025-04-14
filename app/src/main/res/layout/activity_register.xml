@@ -22,7 +22,29 @@
         android:id="@+id/registerUsernameEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nazwa użytkownika"
+        android:hint="Imię"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+    <!-- Pole na Imie -->
+    <EditText
+        android:id="@+id/registerUserSurnameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nazwisko"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#B0BEC5"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/registerUserEmailEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="E-mail"
         android:textColor="#FFFFFF"
         android:textColorHint="#B0BEC5"
         android:backgroundTint="#B0BEC5"

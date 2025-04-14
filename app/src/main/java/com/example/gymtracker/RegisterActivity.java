@@ -1,69 +1,92 @@
 package com.example.gymtracker;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText registerUsernameEditText, registerPasswordEditText;
-    private Button registerButton;
-    private DatabaseHelper dbHelper;
+    private EditText firstNameEditText;
+    private EditText lastNameEditText;
+    private EditText emailEditText;
+    private EditText passwordEditText;
+    private EditText confirmPasswordEditText;
+    private Button nextButton; // dawniej "registerButton"
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        // Inicjalizacja elementów UI
-        registerUsernameEditText = findViewById(R.id.registerUsernameEditText);
-        registerPasswordEditText = findViewById(R.id.registerPasswordEditText);
-        registerButton = findViewById(R.id.registerButton);
+        // Powiązanie z layoutem
+        firstNameEditText       = findViewById(R.id.registerUsernameEditText);         // Imię
+        lastNameEditText        = findViewById(R.id.registerUserSurnameEditText);     // Nazwisko
+        emailEditText           = findViewById(R.id.registerUserEmailEditText);       // E-mail
+        passwordEditText        = findViewById(R.id.registerPasswordEditText);        // Hasło
+        confirmPasswordEditText = findViewById(R.id.registerConfirmPasswordEditText); // Potwierdź hasło
+        nextButton              = findViewById(R.id.registerButton);                  // Przycisk "Dalej"
 
-        // Sprawdzenie, czy elementy UI zostały poprawnie zainicjalizowane
-        if (registerUsernameEditText == null || registerPasswordEditText == null || registerButton == null) {
-            Toast.makeText(this, "Błąd: Nie znaleziono elementów UI", Toast.LENGTH_LONG).show();
-            finish();
+        nextButton.setText("Dalej"); // Zmieniamy etykietę przycisku
+
+        // Obsługa kliknięcia
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                goToProfileStep();
+            }
+        });
+    }
+
+    private void goToProfileStep() {
+        // Pobieramy dane z EditTextów
+        String firstName  = firstNameEditText.getText().toString().trim();
+        String lastName   = lastNameEditText.getText().toString().trim();
+        String email      = emailEditText.getText().toString().trim();
+        String password   = passwordEditText.getText().toString().trim();
+        String confirmPwd = confirmPasswordEditText.getText().toString().trim();
+
+        // Walidacja podstawowa
+        if (firstName.isEmpty()) {
+            firstNameEditText.setError("Podaj imię");
+            firstNameEditText.requestFocus();
+            return;
+        }
+        if (lastName.isEmpty()) {
+            lastNameEditText.setError("Podaj nazwisko");
+            lastNameEditText.requestFocus();
+            return;
+        }
+        if (email.isEmpty()) {
+            emailEditText.setError("Podaj email");
+            emailEditText.requestFocus();
+            return;
+        }
+        if (password.isEmpty()) {
+            passwordEditText.setError("Podaj hasło");
+            passwordEditText.requestFocus();
+            return;
+        }
+        if (!password.equals(confirmPwd)) {
+            confirmPasswordEditText.setError("Hasła się nie zgadzają");
+            confirmPasswordEditText.requestFocus();
             return;
         }
 
-        // Inicjalizacja bazy danych
-        dbHelper = new DatabaseHelper(this);
+        // Przechodzimy do kolejnego ekranu (ActivityProfile),
+        // przekazując dane: firstName, lastName, email, password
+        Intent intent = new Intent(RegisterActivity.this, ProfileActivity.class);
 
-        // Obsługa kliknięcia przycisku Zarejestruj
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = registerUsernameEditText.getText().toString().trim();
-                String password = registerPasswordEditText.getText().toString().trim();
+        // Wkładamy dane do Intentu (klucze i wartości)
+        intent.putExtra("EXTRA_FIRST_NAME", firstName);
+        intent.putExtra("EXTRA_LAST_NAME", lastName);
+        intent.putExtra("EXTRA_EMAIL", email);
+        intent.putExtra("EXTRA_PASSWORD", password);
 
-                // Walidacja
-                if (username.isEmpty()) {
-                    registerUsernameEditText.setError("Podaj nazwę użytkownika");
-                    return;
-                }
-                if (password.isEmpty()) {
-                    registerPasswordEditText.setError("Podaj hasło");
-                    return;
-                }
-
-                // Sprawdzenie, czy nazwa użytkownika już istnieje
-                if (dbHelper.usernameExists(username)) {
-                    registerUsernameEditText.setError("Nazwa użytkownika już istnieje");
-                    return;
-                }
-
-                // Rejestracja użytkownika
-                if (dbHelper.registerUser(username, password)) {
-                    Toast.makeText(RegisterActivity.this, "Rejestracja pomyślna! Możesz się zalogować.", Toast.LENGTH_SHORT).show();
-                    finish(); // Wróć do MainActivity (ekran logowania)
-                } else {
-                    Toast.makeText(RegisterActivity.this, "Błąd podczas rejestracji", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        startActivity(intent);
     }
 }
