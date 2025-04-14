@@ -2,32 +2,30 @@ package com.example.gymtracker;
 
 public class Exercise {
     private String name;
+    private int sets;
     private int reps;
-    private int sets; // Previously weight, now repurposed as sets
+    private float weight;
 
-    public Exercise(String name, int reps, int sets) {
+    public Exercise(String name, int sets, int reps, float weight) {
         this.name = name;
-        this.reps = reps;
         this.sets = sets;
+        this.reps = reps;
+        this.weight = weight;
     }
 
     public String getName() {
         return name;
     }
 
-    public int getReps() {
-        return reps;
-    }
-
     public int getSets() {
         return sets;
     }
 
-    public void setReps(int reps) {
-        this.reps = reps;
+    public int getReps() {
+        return reps;
     }
 
-    public void setSets(int sets) {
-        this.sets = sets;
+    public float getWeight() {
+        return weight;
     }
 }
