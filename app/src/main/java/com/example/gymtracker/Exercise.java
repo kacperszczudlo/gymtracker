@@ -2,25 +2,26 @@ package com.example.gymtracker;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import java.util.ArrayList;
 
 public class Exercise implements Parcelable {
     private String name;
-    private int sets;
-    private int reps;
-    private float weight;
+    private ArrayList<Series> seriesList;
 
-    public Exercise(String name, int sets, int reps, float weight) {
+    public Exercise(String name) {
         this.name = name;
-        this.sets = sets;
-        this.reps = reps;
-        this.weight = weight;
+        this.seriesList = new ArrayList<>();
+    }
+
+    public Exercise(String name, ArrayList<Series> seriesList) {
+        this.name = name;
+        this.seriesList = seriesList != null ? seriesList : new ArrayList<>();
     }
 
     protected Exercise(Parcel in) {
         name = in.readString();
-        sets = in.readInt();
-        reps = in.readInt();
-        weight = in.readFloat();
+        seriesList = new ArrayList<>();
+        in.readList(seriesList, Series.class.getClassLoader());
     }
 
     public static final Creator<Exercise> CREATOR = new Creator<Exercise>() {
@@ -39,28 +40,18 @@ public class Exercise implements Parcelable {
         return name;
     }
 
-    public int getSets() {
-        return sets;
+    public ArrayList<Series> getSeriesList() {
+        return seriesList;
     }
 
-    public void setSets(int sets) {
-        this.sets = sets;
+    public void addSeries(Series series) {
+        seriesList.add(series);
     }
 
-    public int getReps() {
-        return reps;
-    }
-
-    public void setReps(int reps) {
-        this.reps = reps;
-    }
-
-    public float getWeight() {
-        return weight;
-    }
-
-    public void setWeight(float weight) {
-        this.weight = weight;
+    public void removeSeries(int index) {
+        if (index >= 0 && index < seriesList.size()) {
+            seriesList.remove(index);
+        }
     }
 
     @Override
@@ -71,8 +62,6 @@ public class Exercise implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
-        dest.writeInt(sets);
-        dest.writeInt(reps);
-        dest.writeFloat(weight);
+        dest.writeList(seriesList);
     }
 }

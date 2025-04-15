@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import java.util.ArrayList; // Added import
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GymTracker.db";
@@ -39,12 +40,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_DAY_NAME = "day_name";
     private static final String COLUMN_DAY_USER_ID = "user_id";
 
-    // Nowa tabela: ćwiczenia przypisane do dni
+    // Tabela serii dla ćwiczeń w danym dniu
     private static final String TABLE_DAY_EXERCISES = "day_exercises";
     private static final String COLUMN_DAY_EXERCISE_ID = "day_exercise_id";
     private static final String COLUMN_DAY_EXERCISE_DAY_ID = "day_id";
     private static final String COLUMN_DAY_EXERCISE_NAME = "exercise_name";
-    private static final String COLUMN_DAY_EXERCISE_SETS = "sets";
     private static final String COLUMN_DAY_EXERCISE_REPS = "reps";
     private static final String COLUMN_DAY_EXERCISE_WEIGHT = "weight";
 
@@ -89,12 +89,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_DAY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))";
         db.execSQL(createTrainingDaysTable);
 
-        // Tworzenie tabeli ćwiczeń przypisanych do dni
+        // Tworzenie tabeli serii dla ćwiczeń
         String createDayExercisesTable = "CREATE TABLE " + TABLE_DAY_EXERCISES + " (" +
                 COLUMN_DAY_EXERCISE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_DAY_EXERCISE_DAY_ID + " INTEGER, " +
                 COLUMN_DAY_EXERCISE_NAME + " TEXT, " +
-                COLUMN_DAY_EXERCISE_SETS + " INTEGER, " +
                 COLUMN_DAY_EXERCISE_REPS + " INTEGER, " +
                 COLUMN_DAY_EXERCISE_WEIGHT + " REAL, " +
                 "FOREIGN KEY(" + COLUMN_DAY_EXERCISE_DAY_ID + ") REFERENCES " + TABLE_TRAINING_DAYS + "(" + COLUMN_DAY_ID + "))";
@@ -200,39 +199,77 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return -1;
     }
 
-    // Zapis ćwiczenia dla danego dnia
+    // Zapis serii dla ćwiczenia w danym dniu
     public boolean saveDayExercise(long dayId, Exercise exercise) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_DAY_EXERCISE_DAY_ID, dayId);
-        values.put(COLUMN_DAY_EXERCISE_NAME, exercise.getName());
-        values.put(COLUMN_DAY_EXERCISE_SETS, exercise.getSets());
-        values.put(COLUMN_DAY_EXERCISE_REPS, exercise.getReps());
-        values.put(COLUMN_DAY_EXERCISE_WEIGHT, exercise.getWeight());
-        long result = db.insert(TABLE_DAY_EXERCISES, null, values);
-        return result != -1;
+        boolean success = true;
+        for (Series series : exercise.getSeriesList()) {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_DAY_EXERCISE_DAY_ID, dayId);
+            values.put(COLUMN_DAY_EXERCISE_NAME, exercise.getName());
+            values.put(COLUMN_DAY_EXERCISE_REPS, series.getReps());
+            values.put(COLUMN_DAY_EXERCISE_WEIGHT, series.getWeight());
+            long result = db.insert(TABLE_DAY_EXERCISES, null, values);
+            if (result == -1) {
+                success = false;
+            }
+        }
+        return success;
     }
 
-    // Pobieranie ćwiczeń dla danego dnia
-    public Cursor getDayExercises(long dayId) {
+    // Pobieranie ćwiczeń z seriami dla danego dnia
+    public ArrayList<Exercise> getDayExercises(long dayId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_DAY_EXERCISES,
-                new String[]{COLUMN_DAY_EXERCISE_NAME, COLUMN_DAY_EXERCISE_SETS, COLUMN_DAY_EXERCISE_REPS, COLUMN_DAY_EXERCISE_WEIGHT},
+        ArrayList<Exercise> exerciseList = new ArrayList<>();
+        Cursor cursor = db.query(TABLE_DAY_EXERCISES,
+                new String[]{COLUMN_DAY_EXERCISE_NAME, COLUMN_DAY_EXERCISE_REPS, COLUMN_DAY_EXERCISE_WEIGHT},
                 COLUMN_DAY_EXERCISE_DAY_ID + "=?",
                 new String[]{String.valueOf(dayId)},
                 null, null, null);
+
+        String currentExerciseName = null;
+        ArrayList<Series> seriesList = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            String exerciseName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_NAME));
+            int reps = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_REPS));
+            float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_WEIGHT));
+
+            if (!exerciseName.equals(currentExerciseName) && currentExerciseName != null) {
+                exerciseList.add(new Exercise(currentExerciseName, new ArrayList<>(seriesList)));
+                seriesList.clear();
+            }
+            seriesList.add(new Series(reps, weight));
+            currentExerciseName = exerciseName;
+        }
+        // Dodaj ostatnie ćwiczenie, jeśli istnieje
+        if (currentExerciseName != null) {
+            exerciseList.add(new Exercise(currentExerciseName, new ArrayList<>(seriesList)));
+        }
+        cursor.close();
+        return exerciseList;
     }
 
-    // Usuwanie ćwiczenia dla danego dnia
-    public boolean deleteDayExercise(long dayId, String exerciseName) {
+    // Usuwanie serii dla ćwiczenia w danym dniu
+    public boolean deleteDayExercise(long dayId, String exerciseName, int seriesIndex) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int result = db.delete(TABLE_DAY_EXERCISES,
+        // Pobierz wszystkie serie dla danego ćwiczenia
+        Cursor cursor = db.query(TABLE_DAY_EXERCISES,
+                new String[]{COLUMN_DAY_EXERCISE_ID},
                 COLUMN_DAY_EXERCISE_DAY_ID + "=? AND " + COLUMN_DAY_EXERCISE_NAME + "=?",
-                new String[]{String.valueOf(dayId), exerciseName});
-        return result > 0;
+                new String[]{String.valueOf(dayId), exerciseName},
+                null, null, null);
+        int count = 0;
+        if (cursor.moveToPosition(seriesIndex)) {
+            long seriesId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_ID));
+            count = db.delete(TABLE_DAY_EXERCISES,
+                    COLUMN_DAY_EXERCISE_ID + "=?",
+                    new String[]{String.valueOf(seriesId)});
+        }
+        cursor.close();
+        return count > 0;
     }
 
-    // Usuwanie wszystkich ćwiczeń dla danego dnia
+    // Usuwanie wszystkich serii dla danego dnia
     public boolean deleteDayExercises(long dayId) {
         SQLiteDatabase db = this.getWritableDatabase();
         int result = db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
@@ -242,7 +279,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Usuwanie dnia treningowego
     public boolean deleteTrainingDay(long dayId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        // Najpierw usuń wszystkie ćwiczenia dla tego dnia
+        // Najpierw usuń wszystkie serie dla tego dnia
         db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
         // Następnie usuń dzień
         int result = db.delete(TABLE_TRAINING_DAYS, COLUMN_DAY_ID + "=?", new String[]{String.valueOf(dayId)});

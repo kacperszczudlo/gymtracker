@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="8dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:layout_marginBottom="4dp"> <!-- Add spacing between series -->
 
-    <!-- Liczba powtórzeń -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,10 +30,10 @@
             android:textColorHint="#B0B0B0"
             android:gravity="center"
             android:inputType="number"
-            android:padding="8dp"/>
+            android:padding="8dp"
+            android:backgroundTint="#4CAF50"/>
     </LinearLayout>
 
-    <!-- Ciężar -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -57,11 +56,11 @@
             android:textColor="#FFFFFF"
             android:textColorHint="#B0B0B0"
             android:gravity="center"
-            android:inputType="number"
-            android:padding="8dp"/>
+            android:inputType="numberDecimal"
+            android:padding="8dp"
+            android:backgroundTint="#4CAF50"/>
     </LinearLayout>
 
-    <!-- Przycisk "X" -->
     <Button
         android:id="@+id/removeSeriesButton"
         android:layout_width="32dp"

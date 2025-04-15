@@ -2,62 +2,53 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp"
-    android:background="#424242">
+    android:orientation="vertical"
+    android:background="@drawable/rounded_tile_background"
+    android:layout_marginBottom="12dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:padding="8dp">
 
-    <TextView
-        android:id="@+id/exerciseNameTextView"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Przysiady"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:paddingEnd="8dp"/>
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
 
-    <EditText
-        android:id="@+id/setsEditText"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:hint="Serie"
-        android:inputType="number"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#B0B0B0"
-        android:backgroundTint="#4CAF50"
-        android:textSize="14sp"/>
+        <TextView
+            android:id="@+id/exerciseNameTextView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Przysiady"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:paddingEnd="8dp"/>
 
-    <EditText
-        android:id="@+id/repsEditText"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:hint="Powt."
-        android:inputType="number"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#B0B0B0"
-        android:backgroundTint="#4CAF50"
-        android:textSize="14sp"
-        android:layout_marginStart="8dp"/>
-
-    <EditText
-        android:id="@+id/weightEditText"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:hint="Ciężar"
-        android:inputType="numberDecimal"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#B0B0B0"
-        android:backgroundTint="#4CAF50"
-        android:textSize="14sp"
-        android:layout_marginStart="8dp"/>
+        <Button
+            android:id="@+id/removeExerciseButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="X"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/remove_button_background"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Usuń ćwiczenie"/>
+    </LinearLayout>
 
     <Button
-        android:id="@+id/removeExerciseButton"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:text="X"
+        android:id="@+id/addSeriesButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dodaj serię"
+        android:backgroundTint="#4CAF50"
         android:textColor="#FFFFFF"
-        android:background="@drawable/remove_button_background"
-        android:layout_marginStart="8dp"
-        android:contentDescription="Usuń ćwiczenie"/>
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/seriesRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 </LinearLayout>
