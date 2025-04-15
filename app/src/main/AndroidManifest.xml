@@ -48,6 +48,10 @@
             android:name=".TrainingMainActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".TrainingSetupRegisterActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>
