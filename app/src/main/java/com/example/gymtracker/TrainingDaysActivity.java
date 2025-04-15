@@ -4,14 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import java.util.ArrayList;
+import com.example.gymtracker.R;
 
 public class TrainingDaysActivity extends AppCompatActivity {
-    private RecyclerView recyclerView;
-    private TrainingDayAdapter adapter;
-    private ArrayList<String> dayList;
     private DatabaseHelper dbHelper;
 
     @Override
@@ -20,58 +15,70 @@ public class TrainingDaysActivity extends AppCompatActivity {
         setContentView(R.layout.activity_training_days);
 
         dbHelper = new DatabaseHelper(this);
-        recyclerView = findViewById(R.id.trainingDaysRecyclerView);
-        Button addDayButton = findViewById(R.id.addDayButton);
 
-        dayList = new ArrayList<>();
-        loadTrainingDays();
+        // Przyciski dni tygodnia
+        Button mondayButton = findViewById(R.id.mondayButton);
+        Button tuesdayButton = findViewById(R.id.tuesdayButton);
+        Button wednesdayButton = findViewById(R.id.wednesdayButton);
+        Button thursdayButton = findViewById(R.id.thursdayButton);
+        Button fridayButton = findViewById(R.id.fridayButton);
+        Button saturdayButton = findViewById(R.id.saturdayButton);
+        Button sundayButton = findViewById(R.id.sundayButton);
+        Button nextButton = findViewById(R.id.nextButton);
 
-        adapter = new TrainingDayAdapter(dayList, position -> {
-            String dayName = dayList.get(position);
-            long dayId = dbHelper.getTrainingDayId(1, dayName); // Assuming userId = 1
-            if (dayId != -1 && dbHelper.getDayExercises(dayId).size() == 0) {
+        // Tablica dni dla łatwiejszego zarządzania
+        Button[] dayButtons = {
+                mondayButton, tuesdayButton, wednesdayButton,
+                thursdayButton, fridayButton, saturdayButton, sundayButton
+        };
+        String[] dayNames = {
+                "Poniedziałek", "Wtorek", "Środa",
+                "Czwartek", "Piątek", "Sobota", "Niedziela"
+        };
+
+        // Inicjalizacja dni w bazie danych
+        initializeTrainingDays(dayNames);
+
+        // Ustawienie listenerów dla przycisków dni
+        for (int i = 0; i < dayButtons.length; i++) {
+            final String dayName = dayNames[i];
+            dayButtons[i].setOnClickListener(v -> handleDayClick(dayName));
+        }
+
+        // Przycisk "Dalej"
+        nextButton.setOnClickListener(v -> {
+            Intent intent = new Intent(TrainingDaysActivity.this, TrainingMainActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void initializeTrainingDays(String[] dayNames) {
+        int userId = 1; // Zakładamy userId = 1 dla uproszczenia
+        for (String day : dayNames) {
+            long dayId = dbHelper.getTrainingDayId(userId, day);
+            if (dayId == -1) {
+                dbHelper.saveTrainingDay(userId, day);
+            }
+        }
+    }
+
+    private void handleDayClick(String dayName) {
+        int userId = 1; // Zakładamy userId = 1
+        long dayId = dbHelper.getTrainingDayId(userId, dayName);
+        if (dayId != -1) {
+            if (dbHelper.getDayExercises(dayId).isEmpty()) {
+                // Brak ćwiczeń - otwórz TrainingSetupActivity
                 Intent intent = new Intent(TrainingDaysActivity.this, TrainingSetupActivity.class);
                 intent.putExtra("DAY_NAME", dayName);
                 intent.putExtra("DAY_ID", dayId);
                 startActivity(intent);
             } else {
+                // Są ćwiczenia - otwórz TrainingMainActivity
                 Intent intent = new Intent(TrainingDaysActivity.this, TrainingMainActivity.class);
                 intent.putExtra("DAY_NAME", dayName);
                 intent.putExtra("DAY_ID", dayId);
                 startActivity(intent);
             }
-        }, position -> {
-            String dayName = dayList.get(position);
-            long dayId = dbHelper.getTrainingDayId(1, dayName);
-            if (dayId != -1) {
-                dbHelper.deleteTrainingDay(dayId);
-                dayList.remove(position);
-                adapter.notifyItemRemoved(position);
-            }
-        });
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(adapter);
-
-        addDayButton.setOnClickListener(v -> {
-            String newDay = "Dzień " + (dayList.size() + 1);
-            long dayId = dbHelper.saveTrainingDay(1, newDay); // Assuming userId = 1
-            if (dayId != -1) {
-                dayList.add(newDay);
-                adapter.notifyItemInserted(dayList.size() - 1);
-            }
-        });
-    }
-
-    private void loadTrainingDays() {
-        // Example static days; replace with database query if needed
-        String[] days = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek"};
-        for (String day : days) {
-            long dayId = dbHelper.getTrainingDayId(1, day);
-            if (dayId == -1) {
-                dbHelper.saveTrainingDay(1, day);
-            }
-            dayList.add(day);
         }
     }
 }
