@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.gymtracker.R;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -53,9 +54,14 @@ public class TrainingMainActivity extends AppCompatActivity {
         weekDaysRecyclerView.setLayoutManager(layoutManager);
         weekDaysRecyclerView.setAdapter(weekDaysAdapter);
 
-        selectedDay = "Poniedziałek";
-        int initialPosition = Integer.MAX_VALUE / 2 - (Integer.MAX_VALUE / 2 % 7);
-        weekDaysAdapter.setSelectedPosition(initialPosition);
+        // Pobierz aktualny dzień tygodnia
+        Calendar calendar = Calendar.getInstance();
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // 1 = Niedziela, 2 = Poniedziałek, ..., 7 = Sobota
+        int adjustedDayIndex = (dayOfWeek + 5) % 7; // Przesunięcie, aby Poniedziałek był 0, Wtorek 1, ..., Niedziela 6
+        selectedDay = weekDaysAdapter.getFullDayName(adjustedDayIndex); // Ustaw aktualny dzień
+
+        // Ustaw pozycję w RecyclerView na aktualny dzień
+        int initialPosition = Integer.MAX_VALUE / 2 - (Integer.MAX_VALUE / 2 % 7) + adjustedDayIndex;
         weekDaysRecyclerView.scrollToPosition(initialPosition);
 
         Button editButton = findViewById(R.id.editButton);

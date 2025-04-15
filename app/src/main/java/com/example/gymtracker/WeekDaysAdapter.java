@@ -6,12 +6,13 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+import java.util.Calendar; // Dodano import
 
 public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHolder> {
     private static final String[] DAYS = {"Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"};
     private static final String[] FULL_DAYS = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
-    private int selectedPosition = 0;
     private final OnDayClickListener listener;
+    private final int currentDayIndex; // Indeks aktualnego dnia tygodnia (0 = Poniedziałek, ..., 6 = Niedziela)
 
     public interface OnDayClickListener {
         void onDayClick(String dayName);
@@ -19,6 +20,10 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
 
     public WeekDaysAdapter(OnDayClickListener listener) {
         this.listener = listener;
+        // Pobierz aktualny dzień tygodnia
+        Calendar calendar = Calendar.getInstance();
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // 1 = Niedziela, 2 = Poniedziałek, ..., 7 = Sobota
+        currentDayIndex = (dayOfWeek + 5) % 7; // Przesunięcie: Poniedziałek = 0, ..., Niedziela = 6
     }
 
     @NonNull
@@ -34,14 +39,14 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
         int realPosition = position % DAYS.length;
         String day = DAYS[realPosition];
         holder.dayTextView.setText(day);
+
+        // Zaznacz na zielono, jeśli pozycja odpowiada aktualnemu dniowi tygodnia
+        boolean isCurrentDay = (realPosition == currentDayIndex);
         holder.dayTextView.setBackgroundResource(
-                position == selectedPosition ? R.drawable.calendar_selected_background : 0
+                isCurrentDay ? R.drawable.calendar_selected_background : 0
         );
+
         holder.itemView.setOnClickListener(v -> {
-            int previousPosition = selectedPosition;
-            selectedPosition = position;
-            notifyItemChanged(previousPosition);
-            notifyItemChanged(selectedPosition);
             listener.onDayClick(FULL_DAYS[realPosition]);
         });
     }
@@ -51,15 +56,8 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
         return Integer.MAX_VALUE; // Symuluje nieskończoną listę
     }
 
-    public int getSelectedPosition() {
-        return selectedPosition;
-    }
-
-    public void setSelectedPosition(int position) {
-        int previousPosition = selectedPosition;
-        selectedPosition = position;
-        notifyItemChanged(previousPosition);
-        notifyItemChanged(selectedPosition);
+    public String getFullDayName(int index) {
+        return FULL_DAYS[index];
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
