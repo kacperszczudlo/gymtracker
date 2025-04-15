@@ -5,7 +5,10 @@
     android:orientation="horizontal"
     android:padding="8dp"
     android:gravity="center_vertical"
-    android:layout_marginBottom="4dp"> <!-- Add spacing between series -->
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/series_item_background"> <!-- Nowy drawable dla tła -->
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -17,8 +20,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="L. powtórzeń"
-            android:textColor="#B0B0B0"
-            android:textSize="12sp"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:gravity="center"/>
 
         <EditText
@@ -26,11 +30,13 @@
             android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:hint="0"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#B0B0B0"
+            android:textColor="#000000"
+            android:textColorHint="#000000"
             android:gravity="center"
             android:inputType="number"
             android:padding="8dp"
+            android:textSize="30sp"
+            android:textStyle="bold"
             android:backgroundTint="#4CAF50"/>
     </LinearLayout>
 
@@ -44,20 +50,23 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Ciężar"
-            android:textColor="#B0B0B0"
-            android:textSize="12sp"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:gravity="center"/>
 
         <EditText
             android:id="@+id/weightEditText"
-            android:layout_width="60dp"
+            android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:hint="0"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#B0B0B0"
+            android:textColor="#000000"
+            android:textColorHint="#000000"
             android:gravity="center"
             android:inputType="numberDecimal"
             android:padding="8dp"
+            android:textSize="30sp"
+            android:textStyle="bold"
             android:backgroundTint="#4CAF50"/>
     </LinearLayout>
 

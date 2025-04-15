@@ -276,13 +276,4 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result > 0;
     }
 
-    // Usuwanie dnia treningowego
-    public boolean deleteTrainingDay(long dayId) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        // Najpierw usuń wszystkie serie dla tego dnia
-        db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
-        // Następnie usuń dzień
-        int result = db.delete(TABLE_TRAINING_DAYS, COLUMN_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
-        return result > 0;
-    }
 }

@@ -41,5 +41,43 @@
         android:textColor="#FFFFFF"
         android:padding="12dp"
         android:textSize="16sp"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <!-- Pasek nawigacyjny -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:background="@drawable/nav_bar_background"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_vertical">
+
+        <!-- Ikona menu -->
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_menu"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:tint="#FFFFFF"
+            android:scaleType="fitCenter"/>
+
+        <!-- Ikona profilu -->
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_profile"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:tint="#FFFFFF"
+            android:scaleType="fitCenter"/>
+
+    </LinearLayout>
+
 </LinearLayout>
