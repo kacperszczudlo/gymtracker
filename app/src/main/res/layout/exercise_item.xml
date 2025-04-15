@@ -36,19 +36,21 @@
             android:contentDescription="Usuń ćwiczenie"/>
     </LinearLayout>
 
-    <Button
-        android:id="@+id/addSeriesButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Dodaj serię"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"/>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/seriesRecyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/addSeriesButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Dodaj serię"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:padding="12dp"
+        android:layout_marginTop="8dp"/>
 
 </LinearLayout>
