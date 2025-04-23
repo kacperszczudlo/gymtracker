@@ -139,6 +139,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return count > 0;
     }
 
+    // nowe logowanie z emailem -N
+    public boolean checkUserByEmail(String email, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?",
+                new String[]{email, password},
+                null, null, null);
+        int count = cursor.getCount();
+        cursor.close();
+        return count > 0;
+    }
+
+
     // Rejestracja użytkownika
     public boolean registerUser(String username, String password, String email, String surname) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -275,5 +289,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         int result = db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
         return result > 0;
     }
+
+    public boolean checkIfEmailExists(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                COLUMN_EMAIL + "=?",
+                new String[]{email},
+                null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
+
 
 }

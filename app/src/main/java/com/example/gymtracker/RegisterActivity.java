@@ -2,6 +2,7 @@ package com.example.gymtracker;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -34,11 +35,16 @@ public class RegisterActivity extends AppCompatActivity {
 
             if (username.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
                 Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
+            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Nieprawidłowy format adresu email", Toast.LENGTH_SHORT).show();
             } else if (!password.equals(confirmPassword)) {
                 Toast.makeText(this, "Hasła nie są zgodne", Toast.LENGTH_SHORT).show();
+            } else if (dbHelper.checkIfEmailExists(email)) {
+                Toast.makeText(this, "Podany email już istnieje", Toast.LENGTH_SHORT).show();
             } else if (dbHelper.registerUser(username, password, email, surname)) {
                 Intent intent = new Intent(RegisterActivity.this, ProfileActivity.class);
                 startActivity(intent);
+                finish();
             } else {
                 Toast.makeText(this, "Błąd podczas rejestracji", Toast.LENGTH_SHORT).show();
             }
