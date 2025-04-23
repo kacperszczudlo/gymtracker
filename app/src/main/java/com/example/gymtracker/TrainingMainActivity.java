@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.gymtracker.R;
@@ -143,19 +144,32 @@ public class TrainingMainActivity extends AppCompatActivity {
             public void onFinish() {
                 isRunning = false;
                 timerToggleButton.setText("Start");
+                timerToggleButton.setBackgroundTintList(
+                        ContextCompat.getColorStateList(TrainingMainActivity.this, R.color.green)
+                );
                 timeLeftInMillis = startTimeInMillis;
                 updateTimerText();
             }
         }.start();
         isRunning = true;
         timerToggleButton.setText("Stop");
+        timerToggleButton.setBackgroundTintList(
+                ContextCompat.getColorStateList(TrainingMainActivity.this, android.R.color.holo_red_light)
+        );
     }
+
+
 
     private void pauseTimer() {
         if (timer != null) timer.cancel();
         isRunning = false;
         timerToggleButton.setText("Start");
+        timerToggleButton.setBackgroundTintList(
+                ContextCompat.getColorStateList(TrainingMainActivity.this, R.color.green)
+        );
     }
+
+
 
     private void updateTimerText() {
         int minutes = (int) (timeLeftInMillis / 1000) / 60;
