@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gymtracker.R;
 import java.util.ArrayList;
 import java.util.Calendar;
+import android.os.CountDownTimer;
+import android.widget.TextView;
+
 
 public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -19,6 +22,13 @@ public class TrainingMainActivity extends AppCompatActivity {
     private WeekDaysAdapter weekDaysAdapter;
     private String selectedDay;
     private static final int REQUEST_CODE_EDIT_EXERCISES = 2;
+    private TextView timerTextView;
+    private Button timerToggleButton;
+    private CountDownTimer timer;
+    private boolean isRunning = false;
+    private long timeLeftInMillis = 60 * 1000; // 1 minuta
+    private final long startTimeInMillis = 60 * 1000;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +47,10 @@ public class TrainingMainActivity extends AppCompatActivity {
         }, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
+
+
+        initRestTimer();
+
 
         // Add ItemDecoration for spacing between exercise items
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -101,4 +115,52 @@ public class TrainingMainActivity extends AppCompatActivity {
             loadExercisesForDay(selectedDay);
         }
     }
+
+    private void initRestTimer() {
+        timerTextView = findViewById(R.id.timerTextView);
+        timerToggleButton = findViewById(R.id.timerToggleButton);
+
+        updateTimerText();
+
+        timerToggleButton.setOnClickListener(v -> {
+            if (isRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        });
+    }
+
+    private void startTimer() {
+        timer = new CountDownTimer(timeLeftInMillis, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                timeLeftInMillis = millisUntilFinished;
+                updateTimerText();
+            }
+
+            @Override
+            public void onFinish() {
+                isRunning = false;
+                timerToggleButton.setText("Start");
+                timeLeftInMillis = startTimeInMillis;
+                updateTimerText();
+            }
+        }.start();
+        isRunning = true;
+        timerToggleButton.setText("Stop");
+    }
+
+    private void pauseTimer() {
+        if (timer != null) timer.cancel();
+        isRunning = false;
+        timerToggleButton.setText("Start");
+    }
+
+    private void updateTimerText() {
+        int minutes = (int) (timeLeftInMillis / 1000) / 60;
+        int seconds = (int) (timeLeftInMillis / 1000) % 60;
+        timerTextView.setText(String.format("%02d:%02d", minutes, seconds));
+    }
+
 }

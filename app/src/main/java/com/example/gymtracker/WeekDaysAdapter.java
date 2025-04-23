@@ -13,6 +13,7 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
     private static final String[] FULL_DAYS = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
     private final OnDayClickListener listener;
     private final int currentDayIndex; // Indeks aktualnego dnia tygodnia (0 = Poniedziałek, ..., 6 = Niedziela)
+    private int selectedDayIndex = -1;
 
     public interface OnDayClickListener {
         void onDayClick(String dayName);
@@ -41,13 +42,19 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
         holder.dayTextView.setText(day);
 
         // Zaznacz na zielono, jeśli pozycja odpowiada aktualnemu dniowi tygodnia
-        boolean isCurrentDay = (realPosition == currentDayIndex);
-        holder.dayTextView.setBackgroundResource(
-                isCurrentDay ? R.drawable.calendar_selected_background : 0
-        );
+        // Tło: priorytet dzisiejszy > kliknięty
+        if (realPosition == currentDayIndex) {
+            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_background); // zielony
+        } else if (realPosition == selectedDayIndex) {
+            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_grey_background); // szary
+        } else {
+            holder.dayTextView.setBackgroundResource(0); // brak tła
+        }
 
         holder.itemView.setOnClickListener(v -> {
+            selectedDayIndex = realPosition;
             listener.onDayClick(FULL_DAYS[realPosition]);
+            notifyDataSetChanged(); // odśwież wszystkie elementy
         });
     }
 
