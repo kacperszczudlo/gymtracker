@@ -2,16 +2,14 @@ package com.example.gymtracker;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
-
-    private EditText usernameEditText, passwordEditText;
-    private Button loginButton;
+    private EditText emailEditText, passwordEditText;
     private DatabaseHelper dbHelper;
 
     @Override
@@ -19,47 +17,27 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Inicjalizacja elementów UI
-        usernameEditText = findViewById(R.id.usernameEditText);
-        passwordEditText = findViewById(R.id.passwordEditText);
-        loginButton = findViewById(R.id.loginButton);
-
-        // Sprawdzenie, czy elementy UI zostały poprawnie zainicjalizowane
-        if (usernameEditText == null || passwordEditText == null || loginButton == null) {
-            Toast.makeText(this, "Błąd: Nie znaleziono elementów UI", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-
-        // Inicjalizacja bazy danych
         dbHelper = new DatabaseHelper(this);
+        emailEditText = findViewById(R.id.emailEditText);
+        passwordEditText = findViewById(R.id.passwordEditText);
+        Button loginButton = findViewById(R.id.loginButton);
 
-        // Obsługa kliknięcia przycisku Zaloguj
-        loginButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = usernameEditText.getText().toString().trim();
-                String password = passwordEditText.getText().toString().trim();
+        loginButton.setOnClickListener(v -> {
+            String email = emailEditText.getText().toString().trim();
+            String password = passwordEditText.getText().toString();
 
-                // Walidacja
-                if (username.isEmpty()) {
-                    usernameEditText.setError("Podaj nazwę użytkownika");
-                    return;
-                }
-                if (password.isEmpty()) {
-                    passwordEditText.setError("Podaj hasło");
-                    return;
-                }
-
-                // Sprawdzenie danych logowania w bazie danych
-                if (dbHelper.checkUser (username, password)) {
-                    Toast.makeText(LoginActivity.this, "Logowanie pomyślne!", Toast.LENGTH_SHORT).show();
-                    Intent intent = new Intent(LoginActivity.this, TrainingDaysActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, "Błędna nazwa użytkownika lub hasło", Toast.LENGTH_SHORT).show();
-                }
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
+            }
+            else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Nieprawidłowy format email", Toast.LENGTH_SHORT).show();
+            }
+            else if (dbHelper.checkUserByEmail(email, password)) {
+                Intent intent = new Intent(LoginActivity.this, TrainingMainActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Nieprawidłowe dane logowania", Toast.LENGTH_SHORT).show();
             }
         });
     }

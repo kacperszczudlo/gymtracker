@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:gravity="center_vertical"
+    android:layout_marginBottom="8dp"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:background="@drawable/series_item_background"> <!-- Nowy drawable dla tła -->
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="L. powtórzeń"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <EditText
+            android:id="@+id/repsEditText"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:hint="0"
+            android:textColor="#000000"
+            android:textColorHint="#000000"
+            android:gravity="center"
+            android:inputType="number"
+            android:padding="8dp"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:backgroundTint="#4CAF50"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ciężar"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center"/>
+
+        <EditText
+            android:id="@+id/weightEditText"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:hint="0"
+            android:textColor="#000000"
+            android:textColorHint="#000000"
+            android:gravity="center"
+            android:inputType="numberDecimal"
+            android:padding="8dp"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:backgroundTint="#4CAF50"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/removeSeriesButton"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:text="X"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:background="@drawable/remove_button_background"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Usuń serię"/>
+</LinearLayout>

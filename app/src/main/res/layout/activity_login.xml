@@ -8,21 +8,19 @@
     android:background="#212121">
 
     <!-- Logo aplikacji -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="GymTracker\nLOGO"
-        android:textSize="24sp"
-        android:textColor="#FFFFFF"
-        android:gravity="center"
-        android:layout_marginBottom="32dp"/>
+    <ImageView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@mipmap/pelnelogo"        android:contentDescription="Logo aplikacji"
+        android:layout_marginBottom="32dp"
+        android:background="@drawable/circular_background"/>
 
     <!-- Pole na nazwę użytkownika -->
     <EditText
-        android:id="@+id/usernameEditText"
+        android:id="@+id/emailEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nazwa użytkownika"
+        android:hint="Adres e-mail"
         android:textColor="#FFFFFF"
         android:textColorHint="#B0BEC5"
         android:backgroundTint="#B0BEC5"

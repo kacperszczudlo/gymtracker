@@ -1,16 +1,16 @@
 package com.example.gymtracker;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.example.gymtracker.R;
 
 public class RegisterActivity extends AppCompatActivity {
-
-    private EditText registerUsernameEditText, registerPasswordEditText;
-    private Button registerButton;
+    private EditText usernameEditText, surnameEditText, emailEditText, passwordEditText, confirmPasswordEditText;
     private DatabaseHelper dbHelper;
 
     @Override
@@ -18,51 +18,35 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        // Inicjalizacja elementów UI
-        registerUsernameEditText = findViewById(R.id.registerUsernameEditText);
-        registerPasswordEditText = findViewById(R.id.registerPasswordEditText);
-        registerButton = findViewById(R.id.registerButton);
-
-        // Sprawdzenie, czy elementy UI zostały poprawnie zainicjalizowane
-        if (registerUsernameEditText == null || registerPasswordEditText == null || registerButton == null) {
-            Toast.makeText(this, "Błąd: Nie znaleziono elementów UI", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
-
-        // Inicjalizacja bazy danych
         dbHelper = new DatabaseHelper(this);
+        usernameEditText = findViewById(R.id.registerUsernameEditText);
+        surnameEditText = findViewById(R.id.registerUserSurnameEditText);
+        emailEditText = findViewById(R.id.registerUserEmailEditText);
+        passwordEditText = findViewById(R.id.registerPasswordEditText);
+        confirmPasswordEditText = findViewById(R.id.registerConfirmPasswordEditText);
+        Button registerButton = findViewById(R.id.registerButton);
 
-        // Obsługa kliknięcia przycisku Zarejestruj
-        registerButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username = registerUsernameEditText.getText().toString().trim();
-                String password = registerPasswordEditText.getText().toString().trim();
+        registerButton.setOnClickListener(v -> {
+            String username = usernameEditText.getText().toString();
+            String surname = surnameEditText.getText().toString();
+            String email = emailEditText.getText().toString();
+            String password = passwordEditText.getText().toString();
+            String confirmPassword = confirmPasswordEditText.getText().toString();
 
-                // Walidacja
-                if (username.isEmpty()) {
-                    registerUsernameEditText.setError("Podaj nazwę użytkownika");
-                    return;
-                }
-                if (password.isEmpty()) {
-                    registerPasswordEditText.setError("Podaj hasło");
-                    return;
-                }
-
-                // Sprawdzenie, czy nazwa użytkownika już istnieje
-                if (dbHelper.usernameExists(username)) {
-                    registerUsernameEditText.setError("Nazwa użytkownika już istnieje");
-                    return;
-                }
-
-                // Rejestracja użytkownika
-                if (dbHelper.registerUser(username, password)) {
-                    Toast.makeText(RegisterActivity.this, "Rejestracja pomyślna! Możesz się zalogować.", Toast.LENGTH_SHORT).show();
-                    finish(); // Wróć do MainActivity (ekran logowania)
-                } else {
-                    Toast.makeText(RegisterActivity.this, "Błąd podczas rejestracji", Toast.LENGTH_SHORT).show();
-                }
+            if (username.isEmpty() || surname.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
+            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Toast.makeText(this, "Nieprawidłowy format adresu email", Toast.LENGTH_SHORT).show();
+            } else if (!password.equals(confirmPassword)) {
+                Toast.makeText(this, "Hasła nie są zgodne", Toast.LENGTH_SHORT).show();
+            } else if (dbHelper.checkIfEmailExists(email)) {
+                Toast.makeText(this, "Podany email już istnieje", Toast.LENGTH_SHORT).show();
+            } else if (dbHelper.registerUser(username, password, email, surname)) {
+                Intent intent = new Intent(RegisterActivity.this, ProfileActivity.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Toast.makeText(this, "Błąd podczas rejestracji", Toast.LENGTH_SHORT).show();
             }
         });
     }

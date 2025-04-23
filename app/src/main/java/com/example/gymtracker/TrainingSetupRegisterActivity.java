@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.gymtracker.R;
 import java.util.ArrayList;
 
-public class TrainingSetupActivity extends AppCompatActivity {
+public class TrainingSetupRegisterActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ExerciseAdapter adapter;
     private ArrayList<Exercise> exerciseList;
@@ -37,11 +36,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
         trainingTitle.setText("Trening - " + dayName);
 
         exerciseList = new ArrayList<>();
-        if (getIntent().hasExtra("EXERCISE_LIST")) {
-            exerciseList = getIntent().getParcelableArrayListExtra("EXERCISE_LIST");
-        } else {
-            loadExercisesForDay();
-        }
+        loadExercisesForDay();
 
         adapter = new ExerciseAdapter(exerciseList, this::removeExercise, true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -50,13 +45,17 @@ public class TrainingSetupActivity extends AppCompatActivity {
         addExerciseButton.setOnClickListener(v -> showExerciseDialog());
 
         nextButton.setOnClickListener(v -> {
+            // Usuń istniejące ćwiczenia dla tego dnia
             dbHelper.deleteDayExercises(dayId);
+            // Zapisz nowe ćwiczenia
             for (Exercise exercise : exerciseList) {
-                dbHelper.saveDayExercise(dayId, exercise);
+                if (!exercise.getSeriesList().isEmpty()) { // Zapisz tylko ćwiczenia z seriami
+                    dbHelper.saveDayExercise(dayId, exercise);
+                }
             }
-            Intent intent = new Intent(TrainingSetupActivity.this, TrainingMainActivity.class);
+            // Wróć do TrainingDaysActivity
+            Intent intent = new Intent(TrainingSetupRegisterActivity.this, TrainingDaysActivity.class);
             startActivity(intent);
-            setResult(RESULT_OK);
             finish();
         });
     }
@@ -93,9 +92,5 @@ public class TrainingSetupActivity extends AppCompatActivity {
     private void removeExercise(int position) {
         exerciseList.remove(position);
         adapter.notifyItemRemoved(position);
-    }
-
-    public long getDayId() {
-        return dayId;
     }
 }
