@@ -89,8 +89,8 @@
             android:src="@drawable/ic_menu"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Menu"
-            android:tint="#FFFFFF"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
 
         <!-- Ikona profilu -->
         <ImageButton
@@ -101,8 +101,8 @@
             android:src="@drawable/ic_profile"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Profil"
-            android:tint="#FFFFFF"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
 
     </LinearLayout>
 

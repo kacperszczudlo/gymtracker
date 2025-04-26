@@ -11,7 +11,10 @@ import com.example.gymtracker.R;
 import java.util.ArrayList;
 import java.util.Calendar;
 import android.os.CountDownTimer;
+import android.widget.ImageButton;
 import android.widget.TextView;
+import android.content.SharedPreferences;
+import android.widget.Toast;
 
 
 public class TrainingMainActivity extends AppCompatActivity {
@@ -19,6 +22,8 @@ public class TrainingMainActivity extends AppCompatActivity {
     private ExerciseAdapter adapter;
     private ArrayList<Exercise> exerciseList;
     private DatabaseHelper dbHelper;
+    private int userId;
+
     private RecyclerView weekDaysRecyclerView;
     private WeekDaysAdapter weekDaysAdapter;
     private String selectedDay;
@@ -37,6 +42,21 @@ public class TrainingMainActivity extends AppCompatActivity {
         setContentView(R.layout.trainingmainactivity);
 
         dbHelper = new DatabaseHelper(this);
+
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
+
+        Toast.makeText(this, "Odczytano user_id: " + userId, Toast.LENGTH_LONG).show();
+
+
+        if (userId == -1) {
+            Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(TrainingMainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
+
         recyclerView = findViewById(R.id.exerciseRecyclerView);
         weekDaysRecyclerView = findViewById(R.id.weekDaysRecyclerView);
         exerciseList = new ArrayList<>();
@@ -83,8 +103,8 @@ public class TrainingMainActivity extends AppCompatActivity {
         editButton.setOnClickListener(v -> {
             long dayId = getDayId(selectedDay);
             if (dayId == -1) {
-                int userId = 1;
                 dayId = dbHelper.saveTrainingDay(userId, selectedDay);
+
             }
             Intent intent = new Intent(TrainingMainActivity.this, TrainingSetupActivity.class);
             intent.putExtra("DAY_NAME", selectedDay);
@@ -94,11 +114,20 @@ public class TrainingMainActivity extends AppCompatActivity {
         });
 
         loadExercisesForDay(selectedDay);
+
+        ImageButton menuButton = findViewById(R.id.menuButton);
+
+
+        menuButton.setOnClickListener(v -> {
+            Intent intent = new Intent(TrainingMainActivity.this, MenuActivity.class);
+            startActivity(intent);
+        });
+
     }
 
     private void loadExercisesForDay(String dayName) {
         exerciseList.clear();
-        long dayId = dbHelper.getTrainingDayId(1, dayName);
+        long dayId = dbHelper.getTrainingDayId(userId, dayName);
         if (dayId != -1) {
             exerciseList.addAll(dbHelper.getDayExercises(dayId));
         }
@@ -106,7 +135,8 @@ public class TrainingMainActivity extends AppCompatActivity {
     }
 
     private long getDayId(String dayName) {
-        return dbHelper.getTrainingDayId(1, dayName);
+        return dbHelper.getTrainingDayId(userId, dayName);
+
     }
 
     @Override

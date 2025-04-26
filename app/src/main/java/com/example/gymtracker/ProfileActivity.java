@@ -1,6 +1,7 @@
 package com.example.gymtracker;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -48,13 +49,22 @@ public class ProfileActivity extends AppCompatActivity {
             float hipCirc = Float.parseFloat(hipCircStr);
             float weight = Float.parseFloat(weightStr);
 
-            // Zakładam, że userId to 1 dla uproszczenia
-            if (dbHelper.saveProfile(1, gender, height, armCirc, waistCirc, hipCirc, weight)) {
+            SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+            int userId = prefs.getInt("user_id", -1);
+
+            if (userId == -1) {
+                Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (dbHelper.saveProfile(userId, gender, height, armCirc, waistCirc, hipCirc, weight)) {
                 Intent intent = new Intent(ProfileActivity.this, TrainingDaysActivity.class);
                 startActivity(intent);
+                finish();
             } else {
                 Toast.makeText(this, "Błąd podczas zapisu profilu", Toast.LENGTH_SHORT).show();
             }
+
         });
     }
 }

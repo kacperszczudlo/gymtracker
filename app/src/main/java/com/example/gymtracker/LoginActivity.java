@@ -1,6 +1,9 @@
 package com.example.gymtracker;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Patterns;
 import android.widget.Button;
@@ -33,12 +36,35 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "Nieprawidłowy format email", Toast.LENGTH_SHORT).show();
             }
             else if (dbHelper.checkUserByEmail(email, password)) {
-                Intent intent = new Intent(LoginActivity.this, TrainingMainActivity.class);
-                startActivity(intent);
-                finish();
+                int userId = getUserIdByEmail(email); // Pobieramy userId JEDEN raz
+                if (userId != -1) {
+                    SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+                    prefs.edit().putInt("user_id", userId).apply();
+
+                    Toast.makeText(this, "Zalogowano: ID = " + userId, Toast.LENGTH_LONG).show();
+
+
+                    Intent intent = new Intent(LoginActivity.this, TrainingMainActivity.class);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(this, "Błąd podczas logowania użytkownika", Toast.LENGTH_SHORT).show();
+                }
             } else {
                 Toast.makeText(this, "Nieprawidłowe dane logowania", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private int getUserIdByEmail(String email) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query("users", new String[]{"user_id"},
+                "email=?", new String[]{email}, null, null, null);
+        int userId = -1;
+        if (cursor.moveToFirst()) {
+            userId = cursor.getInt(cursor.getColumnIndexOrThrow("user_id"));
+        }
+        cursor.close();
+        return userId;
     }
 }
