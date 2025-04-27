@@ -20,10 +20,11 @@ public class AccountSettingsActivity extends AppCompatActivity {
         Button newPlanButton = findViewById(R.id.newPlanButton);
         Button trackProgressButton = findViewById(R.id.trackProgressButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
+        ImageButton homeButton = findViewById(R.id.homeButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
 
         // Null checks for navigation buttons
-        if (menuButton == null || profileButton == null) {
+        if (menuButton == null || homeButton == null || profileButton == null) {
             Toast.makeText(this, "Błąd: Nie znaleziono przycisków nawigacji", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -52,16 +53,17 @@ public class AccountSettingsActivity extends AppCompatActivity {
         });
 
         menuButton.setOnClickListener(v -> {
-            // Already in UserProfileActivity
             Toast.makeText(this, "Jesteś już w ustawieniach", Toast.LENGTH_SHORT).show();
+        });
+
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(AccountSettingsActivity.this, TrainingMainActivity.class);
+            startActivity(intent);
         });
 
         profileButton.setOnClickListener(v -> {
             Intent intent = new Intent(AccountSettingsActivity.this, UserProfileActivity.class);
             startActivity(intent);
         });
-
-
-
     }
 }

@@ -45,6 +45,7 @@ public class UserProfileActivity extends AppCompatActivity {
         Button logoutButton = findViewById(R.id.logoutButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
+        ImageButton homeButton = findViewById(R.id.homeButton);
 
         // Null checks for navigation buttons
         if (menuButton == null || profileButton == null) {
@@ -80,6 +81,10 @@ public class UserProfileActivity extends AppCompatActivity {
 
         menuButton.setOnClickListener(v -> {
             Intent intent = new Intent(UserProfileActivity.this, AccountSettingsActivity.class);
+            startActivity(intent);
+        });
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UserProfileActivity.this, TrainingMainActivity.class);
             startActivity(intent);
         });
 

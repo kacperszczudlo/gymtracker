@@ -36,7 +36,7 @@ public class TrainingMainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.trainingmainactivity);
+        setContentView(R.layout.activity_training_main);
 
         dbHelper = new DatabaseHelper(this);
 
@@ -108,6 +108,7 @@ public class TrainingMainActivity extends AppCompatActivity {
         // Initialize navigation buttons
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
+        ImageButton homeButton = findViewById(R.id.homeButton);
 
         // Null checks
         if (menuButton == null || profileButton == null) {
@@ -122,6 +123,10 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         profileButton.setOnClickListener(v -> {
             Intent intent = new Intent(TrainingMainActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+        });
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(TrainingMainActivity.this, TrainingMainActivity.class);
             startActivity(intent);
         });
     }

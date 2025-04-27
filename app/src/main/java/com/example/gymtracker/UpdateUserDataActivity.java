@@ -44,6 +44,7 @@ public class UpdateUserDataActivity extends AppCompatActivity {
         Button saveButton = findViewById(R.id.saveButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
+        ImageButton homeButton = findViewById(R.id.homeButton);
 
         // Null checks for navigation buttons
         if (menuButton == null || profileButton == null) {
@@ -64,6 +65,10 @@ public class UpdateUserDataActivity extends AppCompatActivity {
 
         profileButton.setOnClickListener(v -> {
             Intent intent = new Intent(UpdateUserDataActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+        });
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UpdateUserDataActivity.this, TrainingMainActivity.class);
             startActivity(intent);
         });
     }

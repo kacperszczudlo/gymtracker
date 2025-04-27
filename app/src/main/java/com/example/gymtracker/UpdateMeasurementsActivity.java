@@ -47,6 +47,7 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
         Button saveButton = findViewById(R.id.saveButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
+        ImageButton homeButton = findViewById(R.id.homeButton);
 
         // Check for null views
         if (heightEditText == null || weightEditText == null || armCircEditText == null ||
@@ -85,6 +86,10 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
 
         profileButton.setOnClickListener(v -> {
             Intent intent = new Intent(UpdateMeasurementsActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+        });
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UpdateMeasurementsActivity.this, TrainingMainActivity.class);
             startActivity(intent);
         });
     }
