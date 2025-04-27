@@ -52,8 +52,8 @@ public class AccountSettingsActivity extends AppCompatActivity {
         });
 
         menuButton.setOnClickListener(v -> {
-            Intent intent = new Intent(AccountSettingsActivity.this, UserProfileActivity.class);
-            startActivity(intent);
+            // Already in UserProfileActivity
+            Toast.makeText(this, "Jesteś już w ustawieniach", Toast.LENGTH_SHORT).show();
         });
 
         profileButton.setOnClickListener(v -> {
