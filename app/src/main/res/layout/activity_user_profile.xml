@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#212121"
+    android:padding="16dp">
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/usernameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Brak danych"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Progress Tile -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pełen Progres"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="@drawable/rounded_tile_background"
+        android:elevation="4dp"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waga:"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/progressWeightTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brak danych"
+            android:textColor="#B0BEC5"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Obwód ramienia:"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/progressArmCircTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brak danych"
+            android:textColor="#B0BEC5"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Wyciskanie:"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/progressBenchPressTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Brak danych"
+            android:textColor="#B0BEC5" />
+    </LinearLayout>
+
+    <!-- Buttons -->
+    <Button
+        android:id="@+id/achievementsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Osiągnięcia"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/accountSettingsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ustawienia konta"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/dataAnalysisButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Analiza danych"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Wyloguj"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#F44336"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Spacer to push navigation bar to bottom -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Bottom Navigation Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:background="@drawable/nav_bar_background"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_vertical">
+
+        <!-- Ikona menu (left) -->
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_menu"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+
+        <!-- Ikona profilu (right) -->
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_profile"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+</LinearLayout>

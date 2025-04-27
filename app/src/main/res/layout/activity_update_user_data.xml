@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#212121"
+    android:padding="16dp">
+
+    <!-- Logo -->
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/pelnelogo"
+        android:contentDescription="Logo aplikacji"
+        android:layout_gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Username -->
+    <EditText
+        android:id="@+id/usernameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Imię"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Surname -->
+    <EditText
+        android:id="@+id/surnameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nazwisko"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Email -->
+    <EditText
+        android:id="@+id/emailEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Password -->
+    <EditText
+        android:id="@+id/passwordEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Hasło"
+        android:inputType="textPassword"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#B0BEC5"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Zapisz"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Spacer to push navigation bar to bottom -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Bottom Navigation Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:background="@drawable/nav_bar_background"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_vertical">
+
+        <!-- Ikona menu -->
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_menu"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+
+        <!-- Ikona profilu -->
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_profile"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#212121"
+    android:padding="16dp">
+
+    <!-- Logo -->
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/pelnelogo"
+        android:contentDescription="Logo aplikacji"
+        android:layout_gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Buttons -->
+    <Button
+        android:id="@+id/trainingGoalsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Cele treningowe"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/updatePlanButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Aktualizuj plan"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/updateMeasurementsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Aktualizuj obwody"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/trackProgressButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Śledź progres"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/newPlanButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nowy plan"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#4CAF50"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Bottom Navigation Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:orientation="horizontal"
+        android:background="@drawable/nav_bar_background"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="0dp"
+        android:gravity="center_vertical">
+
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_menu"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menu"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+
+        <ImageButton
+            android:id="@+id/profileButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/ic_profile"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Profil"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF" />
+    </LinearLayout>
+</LinearLayout>

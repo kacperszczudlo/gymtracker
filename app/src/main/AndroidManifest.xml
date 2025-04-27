@@ -52,8 +52,21 @@
             android:name=".TrainingSetupRegisterActivity"
             android:exported="true" />
 
-        <activity android:name=".MenuActivity" />
+        <activity
+            android:name=".AccountSettingsActivity"
+            android:exported="true" />
 
+        <activity
+            android:name=".UserProfileActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".UpdateUserDataActivity"
+            android:exported="true" />
+
+        <activity
+            android:name=".UpdateMeasurementsActivity"
+            android:exported="true" />
 
     </application>
 

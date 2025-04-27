@@ -1,21 +1,19 @@
 package com.example.gymtracker;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.gymtracker.R;
 import java.util.ArrayList;
 import java.util.Calendar;
-import android.os.CountDownTimer;
-import android.widget.ImageButton;
-import android.widget.TextView;
-import android.content.SharedPreferences;
-import android.widget.Toast;
-
 
 public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -35,7 +33,6 @@ public class TrainingMainActivity extends AppCompatActivity {
     private long timeLeftInMillis = 60 * 1000; // 1 minuta
     private final long startTimeInMillis = 60 * 1000;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,14 +45,14 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         Toast.makeText(this, "Odczytano user_id: " + userId, Toast.LENGTH_LONG).show();
 
-
         if (userId == -1) {
             Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(TrainingMainActivity.this, LoginActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
+            return;
         }
-
 
         recyclerView = findViewById(R.id.exerciseRecyclerView);
         weekDaysRecyclerView = findViewById(R.id.weekDaysRecyclerView);
@@ -69,15 +66,12 @@ public class TrainingMainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
-
         initRestTimer();
 
-
-        // Add ItemDecoration for spacing between exercise items
         recyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
             @Override
             public void getItemOffsets(android.graphics.Rect outRect, android.view.View view, RecyclerView parent, RecyclerView.State state) {
-                outRect.bottom = 12; // Equivalent to 12dp spacing
+                outRect.bottom = 12;
             }
         });
 
@@ -89,13 +83,10 @@ public class TrainingMainActivity extends AppCompatActivity {
         weekDaysRecyclerView.setLayoutManager(layoutManager);
         weekDaysRecyclerView.setAdapter(weekDaysAdapter);
 
-        // Pobierz aktualny dzień tygodnia
         Calendar calendar = Calendar.getInstance();
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // 1 = Niedziela, 2 = Poniedziałek, ..., 7 = Sobota
-        int adjustedDayIndex = (dayOfWeek + 5) % 7; // Przesunięcie, aby Poniedziałek był 0, Wtorek 1, ..., Niedziela 6
-        selectedDay = weekDaysAdapter.getFullDayName(adjustedDayIndex); // Ustaw aktualny dzień
-
-        // Ustaw pozycję w RecyclerView na aktualny dzień
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        int adjustedDayIndex = (dayOfWeek + 5) % 7;
+        selectedDay = weekDaysAdapter.getFullDayName(adjustedDayIndex);
         int initialPosition = Integer.MAX_VALUE / 2 - (Integer.MAX_VALUE / 2 % 7) + adjustedDayIndex;
         weekDaysRecyclerView.scrollToPosition(initialPosition);
 
@@ -104,7 +95,6 @@ public class TrainingMainActivity extends AppCompatActivity {
             long dayId = getDayId(selectedDay);
             if (dayId == -1) {
                 dayId = dbHelper.saveTrainingDay(userId, selectedDay);
-
             }
             Intent intent = new Intent(TrainingMainActivity.this, TrainingSetupActivity.class);
             intent.putExtra("DAY_NAME", selectedDay);
@@ -115,14 +105,25 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         loadExercisesForDay(selectedDay);
 
+        // Initialize navigation buttons
         ImageButton menuButton = findViewById(R.id.menuButton);
+        ImageButton profileButton = findViewById(R.id.profileButton);
 
+        // Null checks
+        if (menuButton == null || profileButton == null) {
+            Toast.makeText(this, "Błąd: Nie znaleziono przycisków nawigacji", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         menuButton.setOnClickListener(v -> {
-            Intent intent = new Intent(TrainingMainActivity.this, MenuActivity.class);
+            Intent intent = new Intent(TrainingMainActivity.this, AccountSettingsActivity.class);
             startActivity(intent);
         });
 
+        profileButton.setOnClickListener(v -> {
+            Intent intent = new Intent(TrainingMainActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loadExercisesForDay(String dayName) {
@@ -136,7 +137,6 @@ public class TrainingMainActivity extends AppCompatActivity {
 
     private long getDayId(String dayName) {
         return dbHelper.getTrainingDayId(userId, dayName);
-
     }
 
     @Override
@@ -188,8 +188,6 @@ public class TrainingMainActivity extends AppCompatActivity {
         );
     }
 
-
-
     private void pauseTimer() {
         if (timer != null) timer.cancel();
         isRunning = false;
@@ -199,12 +197,9 @@ public class TrainingMainActivity extends AppCompatActivity {
         );
     }
 
-
-
     private void updateTimerText() {
         int minutes = (int) (timeLeftInMillis / 1000) / 60;
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
         timerTextView.setText(String.format("%02d:%02d", minutes, seconds));
     }
-
 }

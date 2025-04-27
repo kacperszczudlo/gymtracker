@@ -70,7 +70,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"/>
 
-    <!-- Pasek nawigacyjny -->
+    <!-- Bottom Navigation Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="36dp"
@@ -80,7 +80,7 @@
         android:layout_marginBottom="0dp"
         android:gravity="center_vertical">
 
-        <!-- Ikona menu -->
+        <!-- Ikona menu (left) -->
         <ImageButton
             android:id="@+id/menuButton"
             android:layout_width="0dp"
@@ -92,7 +92,7 @@
             android:scaleType="fitCenter"
             app:tint="#FFFFFF" />
 
-        <!-- Ikona profilu -->
+        <!-- Ikona profilu (right) -->
         <ImageButton
             android:id="@+id/profileButton"
             android:layout_width="0dp"
@@ -103,7 +103,6 @@
             android:contentDescription="Profil"
             android:scaleType="fitCenter"
             app:tint="#FFFFFF" />
-
     </LinearLayout>
 
 </LinearLayout>
