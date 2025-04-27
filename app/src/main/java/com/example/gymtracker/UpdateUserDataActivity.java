@@ -58,7 +58,7 @@ public class UpdateUserDataActivity extends AppCompatActivity {
         saveButton.setOnClickListener(v -> saveUserData());
 
         menuButton.setOnClickListener(v -> {
-            Intent intent = new Intent(UpdateUserDataActivity.this, UserProfileActivity.class);
+            Intent intent = new Intent(UpdateUserDataActivity.this, AccountSettingsActivity.class);
             startActivity(intent);
         });
 

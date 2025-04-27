@@ -79,7 +79,7 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
         });
 
         menuButton.setOnClickListener(v -> {
-            Intent intent = new Intent(UpdateMeasurementsActivity.this, UserProfileActivity.class);
+            Intent intent = new Intent(UpdateMeasurementsActivity.this, AccountSettingsActivity.class);
             startActivity(intent);
         });
 
