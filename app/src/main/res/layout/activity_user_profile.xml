@@ -117,7 +117,7 @@
                 android:id="@+id/benchPressIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_bench_press"
+                android:src="@drawable/ic_bench"
                 android:contentDescription="Bench Press Icon"
                 app:tint="#4CAF50"
                 app:layout_constraintStart_toStartOf="parent"
