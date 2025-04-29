@@ -126,9 +126,9 @@ public class TrainingMainActivity extends AppCompatActivity {
             startActivity(intent);
         });
         homeButton.setOnClickListener(v -> {
-            Intent intent = new Intent(TrainingMainActivity.this, TrainingMainActivity.class);
-            startActivity(intent);
+            Toast.makeText(this, "Jesteś już na stronie głównej", Toast.LENGTH_SHORT).show();
         });
+
     }
 
     private void loadExercisesForDay(String dayName) {

@@ -17,7 +17,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
         Button trainingGoalsButton = findViewById(R.id.trainingGoalsButton);
         Button updatePlanButton = findViewById(R.id.updatePlanButton);
         Button updateMeasurementsButton = findViewById(R.id.updateMeasurementsButton);
-        Button newPlanButton = findViewById(R.id.newPlanButton);
         Button trackProgressButton = findViewById(R.id.trackProgressButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton homeButton = findViewById(R.id.homeButton);
@@ -46,10 +45,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
 
         trackProgressButton.setOnClickListener(v -> {
             Toast.makeText(this, "Śledź progres - wkrótce dostępne", Toast.LENGTH_SHORT).show();
-        });
-
-        newPlanButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Nowy plan - wkrótce dostępne", Toast.LENGTH_SHORT).show();
         });
 
         menuButton.setOnClickListener(v -> {

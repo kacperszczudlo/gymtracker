@@ -27,62 +27,129 @@
         android:textColor="#FFFFFF"
         android:layout_marginBottom="8dp" />
 
-    <LinearLayout
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@drawable/rounded_tile_background"
-        android:elevation="4dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#2A2A2A"
+        android:layout_marginHorizontal="8dp">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Waga:"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="4dp" />
+            android:padding="16dp">
 
-        <TextView
-            android:id="@+id/progressWeightTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Brak danych"
-            android:textColor="#B0BEC5"
-            android:layout_marginBottom="12dp" />
+            <!-- Weight Row -->
+            <ImageView
+                android:id="@+id/weightIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_weight"
+                android:contentDescription="Weight Icon"
+                app:tint="#4CAF50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Obwód ramienia:"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="4dp" />
+            <TextView
+                android:id="@+id/weightLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Waga:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/weightIcon"
+                app:layout_constraintTop_toTopOf="@id/weightIcon" />
 
-        <TextView
-            android:id="@+id/progressArmCircTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Brak danych"
-            android:textColor="#B0BEC5"
-            android:layout_marginBottom="12dp" />
+            <TextView
+                android:id="@+id/progressWeightTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/weightLabel"
+                app:layout_constraintBottom_toBottomOf="@id/weightLabel" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Wyciskanie:"
-            android:textSize="16sp"
-            android:textColor="#FFFFFF"
-            android:layout_marginBottom="4dp" />
+            <!-- Arm Circumference Row -->
+            <ImageView
+                android:id="@+id/armIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_arm"
+                android:contentDescription="Arm Icon"
+                app:tint="#4CAF50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/weightIcon"
+                android:layout_marginTop="16dp" />
 
-        <TextView
-            android:id="@+id/progressBenchPressTextView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Brak danych"
-            android:textColor="#B0BEC5" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/armLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Obwód ramienia:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/armIcon"
+                app:layout_constraintTop_toTopOf="@id/armIcon" />
+
+            <TextView
+                android:id="@+id/progressArmCircTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/armLabel"
+                app:layout_constraintBottom_toBottomOf="@id/armLabel" />
+
+            <!-- Bench Press Row -->
+            <ImageView
+                android:id="@+id/benchPressIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bench_press"
+                android:contentDescription="Bench Press Icon"
+                app:tint="#4CAF50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/armIcon"
+                android:layout_marginTop="16dp" />
+
+            <TextView
+                android:id="@+id/benchPressLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wyciskanie:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/benchPressIcon"
+                app:layout_constraintTop_toTopOf="@id/benchPressIcon" />
+
+            <TextView
+                android:id="@+id/progressBenchPressTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/benchPressLabel"
+                app:layout_constraintBottom_toBottomOf="@id/benchPressLabel" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
 
     <!-- Buttons -->
     <Button

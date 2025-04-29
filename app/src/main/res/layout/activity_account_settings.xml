@@ -7,16 +7,15 @@
     android:background="#212121"
     android:padding="16dp">
 
-    <!-- Logo -->
     <ImageView
-        android:layout_marginTop="32dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_marginTop="38dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:src="@mipmap/pelnelogo"
         android:contentDescription="Logo aplikacji"
+        android:layout_marginBottom="32dp"
         android:layout_gravity="center"
-        android:layout_marginBottom="24dp" />
-
+        android:background="@drawable/circular_background"/>
     <!-- Buttons -->
     <Button
         android:id="@+id/trainingGoalsButton"
@@ -53,15 +52,6 @@
         android:textColor="#FFFFFF"
         android:backgroundTint="#4CAF50"
         android:layout_marginBottom="8dp" />
-
-    <Button
-        android:id="@+id/newPlanButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Nowy plan"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#4CAF50"
-        android:layout_marginBottom="16dp" />
 
     <!-- Spacer -->
     <View

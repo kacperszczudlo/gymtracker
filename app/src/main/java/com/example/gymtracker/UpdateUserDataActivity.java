@@ -112,7 +112,10 @@ public class UpdateUserDataActivity extends AppCompatActivity {
         long result = db.update("users", values, "user_id=?", new String[]{String.valueOf(userId)});
         if (result > 0) {
             Toast.makeText(this, "Dane zaktualizowane", Toast.LENGTH_SHORT).show();
-            finish();
+            // Przejdź do UserProfileActivity
+            Intent intent = new Intent(UpdateUserDataActivity.this, UserProfileActivity.class);
+            startActivity(intent);
+            finish(); // Zamknij bieżącą aktywność
         } else {
             Toast.makeText(this, "Błąd podczas aktualizacji", Toast.LENGTH_SHORT).show();
         }
