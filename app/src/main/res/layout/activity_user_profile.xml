@@ -62,7 +62,8 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginStart="12dp"
                 app:layout_constraintStart_toEndOf="@id/weightIcon"
-                app:layout_constraintTop_toTopOf="@id/weightIcon" />
+                app:layout_constraintTop_toTopOf="@id/weightIcon"
+                app:layout_constraintBottom_toBottomOf="@id/weightIcon" />
 
             <TextView
                 android:id="@+id/progressWeightTextView"
@@ -73,8 +74,19 @@
                 android:textColor="#B0BEC5"
                 android:fontFamily="sans-serif-light"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/weightLabel"
-                app:layout_constraintBottom_toBottomOf="@id/weightLabel" />
+                app:layout_constraintTop_toTopOf="@id/weightIcon"
+                app:layout_constraintBottom_toBottomOf="@id/weightIcon" />
+
+            <!-- Separator 1 (between Weight and Arm) -->
+            <View
+                android:id="@+id/separator1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/weightIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- Arm Circumference Row -->
             <ImageView
@@ -84,9 +96,9 @@
                 android:src="@drawable/ic_arm"
                 android:contentDescription="Arm Icon"
                 app:tint="#4CAF50"
+                android:layout_marginTop="12dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/weightIcon"
-                android:layout_marginTop="16dp" />
+                app:layout_constraintTop_toBottomOf="@id/separator1" />
 
             <TextView
                 android:id="@+id/armLabel"
@@ -98,7 +110,8 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginStart="12dp"
                 app:layout_constraintStart_toEndOf="@id/armIcon"
-                app:layout_constraintTop_toTopOf="@id/armIcon" />
+                app:layout_constraintTop_toTopOf="@id/armIcon"
+                app:layout_constraintBottom_toBottomOf="@id/armIcon" />
 
             <TextView
                 android:id="@+id/progressArmCircTextView"
@@ -109,8 +122,19 @@
                 android:textColor="#B0BEC5"
                 android:fontFamily="sans-serif-light"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/armLabel"
-                app:layout_constraintBottom_toBottomOf="@id/armLabel" />
+                app:layout_constraintTop_toTopOf="@id/armIcon"
+                app:layout_constraintBottom_toBottomOf="@id/armIcon" />
+
+            <!-- Separator 2 (between Arm and Bench Press) -->
+            <View
+                android:id="@+id/separator2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/armIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <!-- Bench Press Row -->
             <ImageView
@@ -120,9 +144,9 @@
                 android:src="@drawable/ic_bench"
                 android:contentDescription="Bench Press Icon"
                 app:tint="#4CAF50"
+                android:layout_marginTop="12dp"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/armIcon"
-                android:layout_marginTop="16dp" />
+                app:layout_constraintTop_toBottomOf="@id/separator2" />
 
             <TextView
                 android:id="@+id/benchPressLabel"
@@ -134,7 +158,8 @@
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginStart="12dp"
                 app:layout_constraintStart_toEndOf="@id/benchPressIcon"
-                app:layout_constraintTop_toTopOf="@id/benchPressIcon" />
+                app:layout_constraintTop_toTopOf="@id/benchPressIcon"
+                app:layout_constraintBottom_toBottomOf="@id/benchPressIcon" />
 
             <TextView
                 android:id="@+id/progressBenchPressTextView"
@@ -145,8 +170,8 @@
                 android:textColor="#B0BEC5"
                 android:fontFamily="sans-serif-light"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@id/benchPressLabel"
-                app:layout_constraintBottom_toBottomOf="@id/benchPressLabel" />
+                app:layout_constraintTop_toTopOf="@id/benchPressIcon"
+                app:layout_constraintBottom_toBottomOf="@id/benchPressIcon" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
