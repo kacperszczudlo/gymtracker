@@ -1,9 +1,12 @@
 package com.example.gymtracker;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.gymtracker.R;
 
@@ -12,6 +15,9 @@ public class TrainingDaysActivity extends AppCompatActivity {
     private Button[] dayButtons;
     private String[] dayNames;
     private Button nextButton;
+    private SharedPreferences prefs;
+    private int userId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +25,17 @@ public class TrainingDaysActivity extends AppCompatActivity {
         setContentView(R.layout.activity_training_days);
 
         dbHelper = new DatabaseHelper(this);
+
+        prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
+
+        if (userId == -1) {
+            Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(TrainingDaysActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
 
         // Przyciski dni tygodnia
         Button mondayButton = findViewById(R.id.mondayButton);
@@ -70,7 +87,6 @@ public class TrainingDaysActivity extends AppCompatActivity {
     }
 
     private void initializeTrainingDays() {
-        int userId = 1; // Zakładamy userId = 1 dla uproszczenia
         for (String day : dayNames) {
             long dayId = dbHelper.getTrainingDayId(userId, day);
             if (dayId == -1) {
@@ -79,21 +95,19 @@ public class TrainingDaysActivity extends AppCompatActivity {
         }
     }
 
+
     private void handleDayClick(String dayName) {
-        int userId = 1; // Zakładamy userId = 1
         long dayId = dbHelper.getTrainingDayId(userId, dayName);
         if (dayId != -1) {
-            Intent intent;
-            // Otwórz TrainingSetupRegisterActivity podczas rejestracji
-            intent = new Intent(TrainingDaysActivity.this, TrainingSetupRegisterActivity.class);
+            Intent intent = new Intent(TrainingDaysActivity.this, TrainingSetupRegisterActivity.class);
             intent.putExtra("DAY_NAME", dayName);
             intent.putExtra("DAY_ID", dayId);
             startActivity(intent);
         }
     }
 
+
     private void updateButtonColors() {
-        int userId = 1; // Zakładamy userId = 1
         boolean hasExercises = false;
         for (int i = 0; i < dayNames.length; i++) {
             long dayId = dbHelper.getTrainingDayId(userId, dayNames[i]);
@@ -111,8 +125,8 @@ public class TrainingDaysActivity extends AppCompatActivity {
         ));
     }
 
+
     private boolean hasAnyDayExercises() {
-        int userId = 1; // Zakładamy userId = 1
         for (String day : dayNames) {
             long dayId = dbHelper.getTrainingDayId(userId, day);
             if (dayId != -1 && !dbHelper.getDayExercises(dayId).isEmpty()) {
@@ -121,4 +135,5 @@ public class TrainingDaysActivity extends AppCompatActivity {
         }
         return false;
     }
+
 }
