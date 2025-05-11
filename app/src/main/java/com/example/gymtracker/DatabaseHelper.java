@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import java.util.ArrayList; // Added import
+import java.util.HashSet;
 import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -521,91 +522,79 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
 
-    /* ╔══════════════════════════════════════════════════════════╗
-       ║  1.  UP-SERT  –  pobierz istniejący log albo stwórz nowy ║
-       ╚══════════════════════════════════════════════════════════╝ */
-        long logId = -1;
-
-        Cursor cLog = db.query("training_log", new String[]{"log_id"},
+        /*──────────────────── 1. zapewnij istnienie LOGU ────────────────────*/
+        long logId;
+        Cursor c = db.query("training_log", new String[]{"log_id"},
                 "user_id=? AND date=? AND day_name=?",
                 new String[]{String.valueOf(userId), date, dayName},
                 null, null, null);
 
-        if (cLog.moveToFirst()) {                       // ✅ log już istnieje
-            logId = cLog.getLong(0);
-        } else {                                        // ➕ trzeba wstawić nowy
-            ContentValues logVals = new ContentValues();
-            logVals.put("user_id",  userId);
-            logVals.put("date",     date);
-            logVals.put("day_name", dayName);
-            logId = db.insert("training_log", null, logVals);
-            if (logId == -1) {               // awaria INSERT-a
-                cLog.close();
-                return false;
+        if (c.moveToFirst()) {
+            logId = c.getLong(0);
+        } else {                                    // ⇢ brak logu – tworzymy
+            ContentValues v = new ContentValues();
+            v.put("user_id", userId);
+            v.put("date",    date);
+            v.put("day_name",dayName);
+            logId = db.insert("training_log", null, v);
+            if (logId == -1) { c.close(); return false; }
+        }
+        c.close();
+
+        /*──────────────────── 2. usuń ćwiczenia, których NIE ma w liście ────*/
+        HashSet<String> newNames = new HashSet<>();
+        for (Exercise ex : exercises) newNames.add(ex.getName());
+
+        Cursor exCur = db.query("log_exercise",
+                new String[]{"log_exercise_id", "exercise_name"},
+                "log_id=?",
+                new String[]{String.valueOf(logId)},
+                null, null, null);
+
+        while (exCur.moveToNext()) {
+            long   logExId = exCur.getLong(0);
+            String name    = exCur.getString(1);
+
+            if (!newNames.contains(name)) {
+                db.delete("log_series",   "log_exercise_id=?",
+                        new String[]{String.valueOf(logExId)});
+                db.delete("log_exercise", "log_exercise_id=?",
+                        new String[]{String.valueOf(logExId)});
             }
         }
-        cLog.close();
+        exCur.close();
 
-    /* ╔════════════════════════════════════╗
-       ║  2.  Mapa aktualnych ćwiczeń w DB  ║
-       ╚════════════════════════════════════╝ */
-        // Pozwala nam wykryć po zakończeniu, czy trzeba usunąć „stare” ćwiczenia,
-        // których użytkownik już nie ma w edytorze.
-        ArrayList<Long> keepExerciseIds = new ArrayList<>();
-
-    /* ╔════════════════════════════════════════════════════════╗
-       ║  3.  Iterujemy po liście z edytora i zapisujemy zmiany ║
-       ╚════════════════════════════════════════════════════════╝ */
+        /*──────────────────── 3. up-sert aktualną listę ćwiczeń ─────────────*/
         for (Exercise ex : exercises) {
 
-            /* 3a) Czy ćwiczenie istnieje w logu? */
-            long logExerciseId = -1;
-            Cursor exCur = db.query("log_exercise",
-                    new String[]{"log_exercise_id"},
+            // znajdź (lub wstaw) wiersz log_exercise
+            Cursor find = db.query("log_exercise", new String[]{"log_exercise_id"},
                     "log_id=? AND exercise_name=?",
                     new String[]{String.valueOf(logId), ex.getName()},
                     null, null, null);
 
-            if (exCur.moveToFirst()) {                     // ✅ już istnieje
-                logExerciseId = exCur.getLong(0);
-                // czyścimy stare serie
-                db.delete("log_series",
-                        "log_exercise_id=?",
+            long logExerciseId;
+            if (find.moveToFirst()) {                   // ⇢ był – czyścimy serie
+                logExerciseId = find.getLong(0);
+                db.delete("log_series", "log_exercise_id=?",
                         new String[]{String.valueOf(logExerciseId)});
-            } else {                                       // ➕ nowe ćwiczenie
-                ContentValues exVals = new ContentValues();
-                exVals.put("log_id", logId);
-                exVals.put("exercise_name", ex.getName());
-                logExerciseId = db.insert("log_exercise", null, exVals);
+            } else {                                   // ⇢ nie było – INSERT
+                ContentValues ev = new ContentValues();
+                ev.put("log_id", logId);
+                ev.put("exercise_name", ex.getName());
+                logExerciseId = db.insert("log_exercise", null, ev);
             }
-            exCur.close();
+            find.close();
 
-            keepExerciseIds.add(logExerciseId);            // zaznaczamy jako „aktualne”
-
-            /* 3b) Wstawiamy wszystkie serie od zera */
+            // wstaw serie
             for (Series s : ex.getSeriesList()) {
-                ContentValues sVals = new ContentValues();
-                sVals.put("log_exercise_id", logExerciseId);
-                sVals.put("reps",   s.getReps());
-                sVals.put("weight", s.getWeight());
-                db.insert("log_series", null, sVals);
+                ContentValues sv = new ContentValues();
+                sv.put("log_exercise_id", logExerciseId);
+                sv.put("reps",   s.getReps());
+                sv.put("weight", s.getWeight());
+                db.insert("log_series", null, sv);
             }
         }
-
-    /* ╔══════════════════════════════════════════════════════════════╗
-       ║  4.  Usuń ćwiczenia, które były w logu, a zniknęły z edytora ║
-       ╚══════════════════════════════════════════════════════════════╝ */
-        if (!keepExerciseIds.isEmpty()) {
-            String ids = keepExerciseIds.toString().replace("[", "(").replace("]", ")");
-            db.delete("log_exercise",
-                    "log_id=? AND log_exercise_id NOT IN " + ids,
-                    new String[]{String.valueOf(logId)});
-            // kaskada serii: log_series ma FOREIGN KEY, więc usuną się same
-        } else {
-            // użytkownik skasował wszystkie ćwiczenia → usuń pusty log
-            db.delete("training_log", "log_id=?", new String[]{String.valueOf(logId)});
-        }
-
         return true;
     }
 
