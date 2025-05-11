@@ -155,6 +155,12 @@ public class TrainingMainActivity extends AppCompatActivity {
     private void loadExercisesForDay(String dayName) {
         exerciseList.clear();
         selectedDay = dayName;
+        boolean allowEdit = true;                // ← w treningu ZAWSZE możemy dodać/usunąć
+        adapter = new ExerciseAdapter(exerciseList,
+                this::removeExercise,
+                allowEdit);
+        recyclerView.setAdapter(adapter);
+
 
         // DEBUG: sprawdź dane wejściowe
         Log.d("DEBUG_LOG", "Dzień: " + dayName);
@@ -256,15 +262,28 @@ public class TrainingMainActivity extends AppCompatActivity {
     }
 
     private void removeExercise(int position) {
-        Exercise exerciseToRemove = exerciseList.get(position);
+        Exercise ex = exerciseList.get(position);
+
+        // 1.  UI
         exerciseList.remove(position);
         adapter.notifyItemRemoved(position);
 
-        // Usuwanie z bazy danych – tylko z bieżącego logu
+        if (exerciseList.isEmpty()) {
+            adapter.notifyDataSetChanged();   //   ‼️ czyści ewentualny widok-widmo
+        }
+
+        // 2.  Baza
         long logId = dbHelper.getLogId(userId, todayDate, selectedDay);
-        if (logId != -1) {
-            dbHelper.deleteLogExercise(logId, exerciseToRemove.getName());
+        if (logId != -1) {                                   //  log istnieje → usuń ćwiczenie
+            dbHelper.deleteLogExercise(logId, ex.getName());
+
+            // jeżeli to było OSTATNIE ćwiczenie → usuń pusty log
+            if (exerciseList.isEmpty()) {
+                dbHelper.deleteEmptyLogIfNeeded(logId);
+            }
         }
     }
+
+
 
 }
