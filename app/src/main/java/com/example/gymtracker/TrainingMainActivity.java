@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -14,6 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -32,6 +36,7 @@ public class TrainingMainActivity extends AppCompatActivity {
     private boolean isRunning = false;
     private long timeLeftInMillis = 60 * 1000; // 1 minuta
     private final long startTimeInMillis = 60 * 1000;
+    private String todayDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +47,8 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = prefs.getInt("user_id", -1);
+        todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
 
         Toast.makeText(this, "Odczytano user_id: " + userId, Toast.LENGTH_LONG).show();
 
@@ -59,7 +66,7 @@ public class TrainingMainActivity extends AppCompatActivity {
         exerciseList = new ArrayList<>();
         adapter = new ExerciseAdapter(exerciseList, position -> {
             Exercise exercise = exerciseList.get(position);
-            dbHelper.deleteDayExercises(getDayId(selectedDay));
+
             exerciseList.remove(position);
             adapter.notifyItemRemoved(position);
         }, false);
@@ -96,10 +103,16 @@ public class TrainingMainActivity extends AppCompatActivity {
             if (dayId == -1) {
                 dayId = dbHelper.saveTrainingDay(userId, selectedDay);
             }
+
             Intent intent = new Intent(TrainingMainActivity.this, TrainingSetupActivity.class);
             intent.putExtra("DAY_NAME", selectedDay);
-            intent.putExtra("DAY_ID", dayId);
+            intent.putExtra("DAY_ID",   dayId);
             intent.putParcelableArrayListExtra("EXERCISE_LIST", exerciseList);
+
+            // ‼️ NOWE DODATKOWE FLAGI
+            intent.putExtra("MODE", "LOG");     // mówimy Setup-owi, że edytujemy dzisiejszy log
+            intent.putExtra("DATE", todayDate); // przekazujemy dzisiejszą datę
+
             startActivityForResult(intent, REQUEST_CODE_EDIT_EXERCISES);
         });
 
@@ -129,16 +142,50 @@ public class TrainingMainActivity extends AppCompatActivity {
             Toast.makeText(this, "Jesteś już na stronie głównej", Toast.LENGTH_SHORT).show();
         });
 
+        Button saveButton = findViewById(R.id.saveTrainingButton);
+        saveButton.setOnClickListener(v -> {
+            boolean success = dbHelper.saveLogSeries(userId, todayDate, selectedDay, exerciseList);
+            String message = success ? "Trening zapisany pomyślnie!" : "Błąd zapisu treningu!";
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        });
+
+
     }
 
     private void loadExercisesForDay(String dayName) {
         exerciseList.clear();
-        long dayId = dbHelper.getTrainingDayId(userId, dayName);
-        if (dayId != -1) {
-            exerciseList.addAll(dbHelper.getDayExercises(dayId));
+        selectedDay = dayName;
+
+        // DEBUG: sprawdź dane wejściowe
+        Log.d("DEBUG_LOG", "Dzień: " + dayName);
+        Log.d("DEBUG_LOG", "Data: " + todayDate);
+        Log.d("DEBUG_LOG", "User ID: " + userId);
+
+        boolean logExists = dbHelper.trainingLogExists(userId, todayDate, dayName);
+        Log.d("DEBUG_LOG", "Czy log istnieje: " + logExists);
+
+        if (!logExists) {
+            /*  1️⃣ spróbuj zbudować z planu...                         */
+            boolean created = dbHelper.createEmptyTrainingLogFromPlan(userId, dayName, todayDate);
+
+            /*  2️⃣ …a jeśli planu brak – utwórz całkiem pusty log.     */
+            if (!created) {
+                long id = dbHelper.createEmptyTrainingLog(userId, dayName, todayDate);
+                Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log, id=" + id);
+            }
         }
+
+
+        // Pobieramy dane z logu
+        exerciseList.addAll(dbHelper.getLogExercises(userId, todayDate, dayName));
+        Log.d("DEBUG_LOG", "Załadowano ćwiczeń: " + exerciseList.size());
+
+        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, false); // umożliwia edycję
+        recyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
+
+
 
     private long getDayId(String dayName) {
         return dbHelper.getTrainingDayId(userId, dayName);
@@ -207,4 +254,17 @@ public class TrainingMainActivity extends AppCompatActivity {
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
         timerTextView.setText(String.format("%02d:%02d", minutes, seconds));
     }
+
+    private void removeExercise(int position) {
+        Exercise exerciseToRemove = exerciseList.get(position);
+        exerciseList.remove(position);
+        adapter.notifyItemRemoved(position);
+
+        // Usuwanie z bazy danych – tylko z bieżącego logu
+        long logId = dbHelper.getLogId(userId, todayDate, selectedDay);
+        if (logId != -1) {
+            dbHelper.deleteLogExercise(logId, exerciseToRemove.getName());
+        }
+    }
+
 }

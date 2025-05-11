@@ -2,6 +2,7 @@ package com.example.gymtracker;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.Button;
@@ -19,6 +20,7 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private String dayName;
     private long dayId;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +28,8 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_training_setup);
 
         dbHelper = new DatabaseHelper(this);
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
         recyclerView = findViewById(R.id.exerciseRecyclerView);
         Button addExerciseButton = findViewById(R.id.addExerciseButton);
         Button nextButton = findViewById(R.id.nextButton);
@@ -53,6 +57,8 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
                     dbHelper.saveDayExercise(dayId, exercise);
                 }
             }
+            dbHelper.saveTrainingPlan(userId, dayName, exerciseList);   // :contentReference[oaicite:2]{index=2}
+
             // Wróć do TrainingDaysActivity
             Intent intent = new Intent(TrainingSetupRegisterActivity.this, TrainingDaysActivity.class);
             startActivity(intent);

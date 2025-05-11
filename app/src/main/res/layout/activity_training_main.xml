@@ -70,6 +70,22 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"/>
 
+    <Button
+        android:id="@+id/saveTrainingButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Zapisz trening"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFFFFF"
+        android:padding="12dp"
+        android:textSize="16sp"
+        android:layout_marginTop="-8dp"
+        android:layout_marginBottom="16dp"/>
+
+
+
+
+
     <!-- Bottom Navigation Bar -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

@@ -2,29 +2,36 @@ package com.example.gymtracker;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import com.example.gymtracker.R;
 import java.util.ArrayList;
 
 public class TrainingSetupActivity extends AppCompatActivity {
+
     private RecyclerView recyclerView;
     private ExerciseAdapter adapter;
     private ArrayList<Exercise> exerciseList;
     private DatabaseHelper dbHelper;
     private String dayName;
     private long dayId;
+    private int userId;
+    private boolean isLogEdit;      //  🔑
+    private String logDate;         //  🔑
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_setup);
+        isLogEdit = "LOG".equals(getIntent().getStringExtra("MODE"));
+        logDate   = getIntent().getStringExtra("DATE"); // może być null dla planu
 
         dbHelper = new DatabaseHelper(this);
         recyclerView = findViewById(R.id.exerciseRecyclerView);
@@ -32,15 +39,18 @@ public class TrainingSetupActivity extends AppCompatActivity {
         Button nextButton = findViewById(R.id.nextButton);
         TextView trainingTitle = findViewById(R.id.trainingTitleTextView);
 
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
+
         dayName = getIntent().getStringExtra("DAY_NAME");
-        dayId = getIntent().getLongExtra("DAY_ID", -1);
+        dayId = getIntent().getLongExtra("DAY_ID", -1); // ✔️ zachowujemy
         trainingTitle.setText("Trening - " + dayName);
 
         exerciseList = new ArrayList<>();
         if (getIntent().hasExtra("EXERCISE_LIST")) {
             exerciseList = getIntent().getParcelableArrayListExtra("EXERCISE_LIST");
         } else {
-            loadExercisesForDay();
+            loadExercisesForDay(); // ✔️ zachowujemy jako fallback
         }
 
         adapter = new ExerciseAdapter(exerciseList, this::removeExercise, true);
@@ -50,15 +60,27 @@ public class TrainingSetupActivity extends AppCompatActivity {
         addExerciseButton.setOnClickListener(v -> showExerciseDialog());
 
         nextButton.setOnClickListener(v -> {
-            dbHelper.deleteDayExercises(dayId);
-            for (Exercise exercise : exerciseList) {
-                dbHelper.saveDayExercise(dayId, exercise);
+
+            if (isLogEdit) {                               // 🔧 tryb edycji dziennika
+                boolean ok = dbHelper.saveLogSeries(
+                        userId, logDate, dayName, exerciseList);
+                Log.d("DEBUG_PLAN", "saveLogSeries -> " + ok);
+
+            } else {                                       // 🔧 tryb “buduję szablon”
+                long planId = dbHelper.saveTrainingPlan(
+                        userId, dayName, exerciseList);
+                Log.d("DEBUG_PLAN", "saveTrainingPlan planId=" + planId);
             }
-            Intent intent = new Intent(TrainingSetupActivity.this, TrainingMainActivity.class);
+
+            // powrót do ekranu głównego
+            Intent intent = new Intent(
+                    TrainingSetupActivity.this, TrainingMainActivity.class);
             startActivity(intent);
             setResult(RESULT_OK);
             finish();
         });
+
+
     }
 
     private void showExerciseDialog() {
@@ -87,8 +109,17 @@ public class TrainingSetupActivity extends AppCompatActivity {
     }
 
     private void loadExercisesForDay() {
-        exerciseList.addAll(dbHelper.getDayExercises(dayId));
+        if (isLogEdit) {                               // 🔧 edytujemy LOG z dzisiejszego treningu
+            exerciseList.addAll(
+                    dbHelper.getLogExercises(userId, logDate, dayName)
+            );
+        } else {                                       // klasyczny szablon-plan
+            exerciseList.addAll(
+                    dbHelper.getDayExercises(dayId)
+            );
+        }
     }
+
 
     private void removeExercise(int position) {
         exerciseList.remove(position);
