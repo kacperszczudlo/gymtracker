@@ -68,6 +68,10 @@
             android:name=".UpdateMeasurementsActivity"
             android:exported="true" />
 
+<!--        <activity-->
+<!--            android:name=".TrainingGoalsActivty"-->
+<!--            android:exported="true" />-->
+
     </application>
 
 </manifest>
