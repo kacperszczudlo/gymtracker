@@ -9,7 +9,7 @@ import java.util.ArrayList; // Added import
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GymTracker.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     // Tabela użytkowników
     private static final String TABLE_USERS = "users";
