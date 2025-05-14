@@ -1,5 +1,6 @@
 package com.example.gymtracker;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,34 +42,39 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
         // Inicjalizacja SeriesAdapter
         SeriesAdapter seriesAdapter = new SeriesAdapter(
                 exercise.getSeriesList(),
-                isEditable,
+                isEditable, // Przekazanie isEditable do SeriesAdapter, aby kontrolować edytowalność EditText
                 seriesPosition -> {
+                    // Usuwanie serii
                     exercise.removeSeries(seriesPosition);
                     notifyItemChanged(position);
-                    // Opcjonalnie: usuń z bazy danych
-                    long dayId = ((TrainingSetupActivity) holder.itemView.getContext()).getDayId();
-                    if (dayId != -1) {
-                        DatabaseHelper dbHelper = new DatabaseHelper(holder.itemView.getContext());
-                        dbHelper.deleteDayExercise(dayId, exercise.getName(), seriesPosition);
+                    Log.d("DEBUG_SERIES", "Usunięto serię na pozycji: " + seriesPosition + " z ćwiczenia: " + exercise.getName());
+                    // Usuwanie serii z bazy danych w trybie planowania
+                    if (holder.itemView.getContext() instanceof TrainingSetupRegisterActivity) {
+                        long dayId = ((TrainingSetupRegisterActivity) holder.itemView.getContext()).getIntent().getLongExtra("DAY_ID", -1);
+                        if (dayId != -1) {
+                            DatabaseHelper dbHelper = new DatabaseHelper(holder.itemView.getContext());
+                            dbHelper.deleteDayExercise(dayId, exercise.getName(), seriesPosition);
+                        }
                     }
                 }
         );
         holder.seriesRecyclerView.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));
         holder.seriesRecyclerView.setAdapter(seriesAdapter);
 
-        holder.addSeriesButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
-        holder.removeExerciseButton.setVisibility(isEditable ? View.VISIBLE : View.GONE);
+        // Przyciski zawsze widoczne dla usuwania i dodawania serii oraz ćwiczeń
+        holder.addSeriesButton.setVisibility(View.VISIBLE);
+        holder.removeExerciseButton.setVisibility(View.VISIBLE);
 
-        if (isEditable) {
-            holder.addSeriesButton.setOnClickListener(v -> {
-                exercise.addSeries(new Series(0, 0));
-                notifyItemChanged(position);
-            });
-            holder.removeExerciseButton.setOnClickListener(v -> listener.onItemClick(position));
-        } else {
-            holder.addSeriesButton.setOnClickListener(null);
-            holder.removeExerciseButton.setOnClickListener(null);
-        }
+        holder.addSeriesButton.setOnClickListener(v -> {
+            // Domyślne wartości serii (możesz dostosować)
+            exercise.addSeries(new Series(0, 0)); // Ustawiam domyślne reps=0, weight=0
+            notifyItemChanged(position);
+            Log.d("DEBUG_SERIES", "Dodano serię do ćwiczenia: " + exercise.getName() + ", Nowe serie: " + exercise.getSeriesList().size());
+        });
+
+        holder.removeExerciseButton.setOnClickListener(v -> {
+            listener.onItemClick(position);
+        });
     }
 
     @Override

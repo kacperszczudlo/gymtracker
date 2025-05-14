@@ -4,11 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.gymtracker.R;
+import java.util.ArrayList;
 
 public class TrainingDaysActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
@@ -17,7 +17,6 @@ public class TrainingDaysActivity extends AppCompatActivity {
     private Button nextButton;
     private SharedPreferences prefs;
     private int userId;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,12 +29,12 @@ public class TrainingDaysActivity extends AppCompatActivity {
         userId = prefs.getInt("user_id", -1);
 
         if (userId == -1) {
-            Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Błąd użytkownika. Spróbuj ponownie się zalogować.", Toast.LENGTH_LONG).show();
             Intent intent = new Intent(TrainingDaysActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
+            return;
         }
-
 
         // Przyciski dni tygodnia
         Button mondayButton = findViewById(R.id.mondayButton);
@@ -72,6 +71,8 @@ public class TrainingDaysActivity extends AppCompatActivity {
                 Intent intent = new Intent(TrainingDaysActivity.this, TrainingMainActivity.class);
                 startActivity(intent);
                 finish();
+            } else {
+                Toast.makeText(this, "Wybierz przynajmniej jeden dzień z ćwiczeniami!", Toast.LENGTH_LONG).show();
             }
         });
 
@@ -83,6 +84,7 @@ public class TrainingDaysActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         // Odśwież kolory przycisków po powrocie do aktywności
+        Log.d("DEBUG_DAYS", "onResume: Odświeżanie kolorów przycisków");
         updateButtonColors();
     }
 
@@ -90,11 +92,13 @@ public class TrainingDaysActivity extends AppCompatActivity {
         for (String day : dayNames) {
             long dayId = dbHelper.getTrainingDayId(userId, day);
             if (dayId == -1) {
-                dbHelper.saveTrainingDay(userId, day);
+                dayId = dbHelper.saveTrainingDay(userId, day);
+                Log.d("DEBUG_DAYS", "Zainicjalizowano dzień: " + day + ", dayId: " + dayId);
+            } else {
+                Log.d("DEBUG_DAYS", "Dzień już istnieje: " + day + ", dayId: " + dayId);
             }
         }
     }
-
 
     private void handleDayClick(String dayName) {
         long dayId = dbHelper.getTrainingDayId(userId, dayName);
@@ -102,20 +106,35 @@ public class TrainingDaysActivity extends AppCompatActivity {
             Intent intent = new Intent(TrainingDaysActivity.this, TrainingSetupRegisterActivity.class);
             intent.putExtra("DAY_NAME", dayName);
             intent.putExtra("DAY_ID", dayId);
+            intent.putExtra("SOURCE_ACTIVITY", "TrainingDaysActivity");
             startActivity(intent);
+        } else {
+            Log.e("DEBUG_DAYS", "Błąd: Nie znaleziono dayId dla dnia: " + dayName);
+            Toast.makeText(this, "Błąd: Nie można otworzyć dnia " + dayName, Toast.LENGTH_LONG).show();
         }
     }
-
 
     private void updateButtonColors() {
         boolean hasExercises = false;
         for (int i = 0; i < dayNames.length; i++) {
             long dayId = dbHelper.getTrainingDayId(userId, dayNames[i]);
-            if (dayId != -1 && !dbHelper.getDayExercises(dayId).isEmpty()) {
-                dayButtons[i].setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#4CAF50")));
-                hasExercises = true;
+            if (dayId != -1) {
+                ArrayList<Exercise> exercises = dbHelper.getDayExercises(dayId);
+                Log.d("DEBUG_DAYS", "updateButtonColors - Dzień: " + dayNames[i] + ", dayId: " + dayId + ", ćwiczeń: " + exercises.size());
+                for (Exercise ex : exercises) {
+                    Log.d("DEBUG_DAYS", "Ćwiczenie: " + ex.getName() + ", Serie: " + ex.getSeriesList().size());
+                    for (Series series : ex.getSeriesList()) {
+                        Log.d("DEBUG_DAYS", "Seria: reps=" + series.getReps() + ", weight=" + series.getWeight());
+                    }
+                }
+                if (!exercises.isEmpty()) {
+                    dayButtons[i].setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#4CAF50")));
+                    hasExercises = true;
+                } else {
+                    dayButtons[i].setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#616161")));
+                }
             } else {
-                dayButtons[i].setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#616161")));
+                Log.e("DEBUG_DAYS", "Błąd: Nie znaleziono dayId dla dnia: " + dayNames[i]);
             }
         }
         // Aktywuj przycisk "Dalej" tylko jeśli są ćwiczenia
@@ -123,17 +142,20 @@ public class TrainingDaysActivity extends AppCompatActivity {
         nextButton.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
                 hasExercises ? Color.parseColor("#4CAF50") : Color.parseColor("#B0BEC5")
         ));
+        Log.d("DEBUG_DAYS", "Przycisk Dalej aktywny: " + hasExercises);
     }
-
 
     private boolean hasAnyDayExercises() {
         for (String day : dayNames) {
             long dayId = dbHelper.getTrainingDayId(userId, day);
-            if (dayId != -1 && !dbHelper.getDayExercises(dayId).isEmpty()) {
-                return true;
+            if (dayId != -1) {
+                ArrayList<Exercise> exercises = dbHelper.getDayExercises(dayId);
+                Log.d("DEBUG_DAYS", "hasAnyDayExercises - Dzień: " + day + ", dayId: " + dayId + ", ćwiczeń: " + exercises.size());
+                if (!exercises.isEmpty()) {
+                    return true;
+                }
             }
         }
         return false;
     }
-
 }

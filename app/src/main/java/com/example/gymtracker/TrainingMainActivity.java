@@ -49,7 +49,6 @@ public class TrainingMainActivity extends AppCompatActivity {
         userId = prefs.getInt("user_id", -1);
         todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-
         Toast.makeText(this, "Odczytano user_id: " + userId, Toast.LENGTH_LONG).show();
 
         if (userId == -1) {
@@ -66,7 +65,6 @@ public class TrainingMainActivity extends AppCompatActivity {
         exerciseList = new ArrayList<>();
         adapter = new ExerciseAdapter(exerciseList, position -> {
             Exercise exercise = exerciseList.get(position);
-
             exerciseList.remove(position);
             adapter.notifyItemRemoved(position);
         }, false);
@@ -104,15 +102,13 @@ public class TrainingMainActivity extends AppCompatActivity {
                 dayId = dbHelper.saveTrainingDay(userId, selectedDay);
             }
 
-            Intent intent = new Intent(TrainingMainActivity.this, TrainingSetupActivity.class);
+            Intent intent = new Intent(TrainingMainActivity.this, TrainingSetupRegisterActivity.class);
             intent.putExtra("DAY_NAME", selectedDay);
-            intent.putExtra("DAY_ID",   dayId);
+            intent.putExtra("DAY_ID", dayId);
+            intent.putExtra("SOURCE_ACTIVITY", "TrainingMainActivity");
             intent.putParcelableArrayListExtra("EXERCISE_LIST", exerciseList);
-
-            // ‼️ NOWE DODATKOWE FLAGI
-            intent.putExtra("MODE", "LOG");     // mówimy Setup-owi, że edytujemy dzisiejszy log
-            intent.putExtra("DATE", todayDate); // przekazujemy dzisiejszą datę
-
+            intent.putExtra("MODE", "LOG");
+            intent.putExtra("DATE", todayDate);
             startActivityForResult(intent, REQUEST_CODE_EDIT_EXERCISES);
         });
 
@@ -148,19 +144,14 @@ public class TrainingMainActivity extends AppCompatActivity {
             String message = success ? "Trening zapisany pomyślnie!" : "Błąd zapisu treningu!";
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
         });
-
-
     }
 
     private void loadExercisesForDay(String dayName) {
         exerciseList.clear();
         selectedDay = dayName;
-        boolean allowEdit = true;                // ← w treningu ZAWSZE możemy dodać/usunąć
-        adapter = new ExerciseAdapter(exerciseList,
-                this::removeExercise,
-                allowEdit);
+        boolean allowEdit = true;
+        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, allowEdit);
         recyclerView.setAdapter(adapter);
-
 
         // DEBUG: sprawdź dane wejściowe
         Log.d("DEBUG_LOG", "Dzień: " + dayName);
@@ -171,27 +162,21 @@ public class TrainingMainActivity extends AppCompatActivity {
         Log.d("DEBUG_LOG", "Czy log istnieje: " + logExists);
 
         if (!logExists) {
-            /*  1️⃣ spróbuj zbudować z planu...                         */
             boolean created = dbHelper.createEmptyTrainingLogFromPlan(userId, dayName, todayDate);
-
-            /*  2️⃣ …a jeśli planu brak – utwórz całkiem pusty log.     */
             if (!created) {
                 long id = dbHelper.createEmptyTrainingLog(userId, dayName, todayDate);
                 Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log, id=" + id);
             }
         }
 
-
         // Pobieramy dane z logu
         exerciseList.addAll(dbHelper.getLogExercises(userId, todayDate, dayName));
         Log.d("DEBUG_LOG", "Załadowano ćwiczeń: " + exerciseList.size());
 
-        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, false); // umożliwia edycję
+        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, false);
         recyclerView.setAdapter(adapter);
         adapter.notifyDataSetChanged();
     }
-
-
 
     private long getDayId(String dayName) {
         return dbHelper.getTrainingDayId(userId, dayName);
@@ -199,7 +184,7 @@ public class TrainingMainActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        super.onActivityResult(requestCode, resultCode, data); // Poprawiono: usunięto "Intent data"
         if (requestCode == REQUEST_CODE_EDIT_EXERCISES && resultCode == RESULT_OK) {
             loadExercisesForDay(selectedDay);
         }
@@ -264,26 +249,21 @@ public class TrainingMainActivity extends AppCompatActivity {
     private void removeExercise(int position) {
         Exercise ex = exerciseList.get(position);
 
-        // 1.  UI
+        // 1. UI
         exerciseList.remove(position);
         adapter.notifyItemRemoved(position);
 
         if (exerciseList.isEmpty()) {
-            adapter.notifyDataSetChanged();   //   ‼️ czyści ewentualny widok-widmo
+            adapter.notifyDataSetChanged();
         }
 
-        // 2.  Baza
+        // 2. Baza
         long logId = dbHelper.getLogId(userId, todayDate, selectedDay);
-        if (logId != -1) {                                   //  log istnieje → usuń ćwiczenie
+        if (logId != -1) {
             dbHelper.deleteLogExercise(logId, ex.getName());
-
-            // jeżeli to było OSTATNIE ćwiczenie → usuń pusty log
             if (exerciseList.isEmpty()) {
                 dbHelper.deleteEmptyLogIfNeeded(logId);
             }
         }
     }
-
-
-
 }
