@@ -30,9 +30,8 @@ public class AccountSettingsActivity extends AppCompatActivity {
 
         // Set click listeners
         trainingGoalsButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Cele treningowe - wkrótce dostępne", Toast.LENGTH_SHORT).show();
-//            Intent intent = new Intent(AccountSettingsActivity.this, TrainingGoalsActivity.class);
-//            startActivity(intent);
+            Intent intent = new Intent(AccountSettingsActivity.this, TrainingGoalsActivity.class);
+            startActivity(intent);
         });
 
         updateMeasurementsButton.setOnClickListener(v -> {

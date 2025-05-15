@@ -9,23 +9,23 @@
 
     <!-- Title -->
     <TextView
-        android:layout_marginTop="32dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:paddingBottom="16dp"
         android:text="Wprowadź dane"
-        android:textSize="20sp"
         android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:paddingBottom="16dp" />
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <!-- Input Fields in CardView -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
+        android:layout_marginBottom="16dp"
         app:cardBackgroundColor="#424242"
-        android:layout_marginBottom="16dp">
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -37,101 +37,101 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Wzrost (cm)"
-                android:textSize="14sp"
                 android:textColor="#FFFFFF"
-                android:paddingBottom="4dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/heightEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:inputType="numberDecimal"
-                android:imeOptions="actionNext"
-                android:textColor="#FFFFFF"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#FFFFFF" />
 
             <!-- Weight Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Waga (kg)"
-                android:textSize="14sp"
                 android:textColor="#FFFFFF"
-                android:paddingBottom="4dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/weightEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:inputType="numberDecimal"
-                android:imeOptions="actionNext"
-                android:textColor="#FFFFFF"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#FFFFFF" />
 
             <!-- Arm Circumference Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Obwód ramienia (cm)"
-                android:textSize="14sp"
                 android:textColor="#FFFFFF"
-                android:paddingBottom="4dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/armCircEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:inputType="numberDecimal"
-                android:imeOptions="actionNext"
-                android:textColor="#FFFFFF"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#FFFFFF" />
 
             <!-- Waist Circumference Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Obwód talii (cm)"
-                android:textSize="14sp"
                 android:textColor="#FFFFFF"
-                android:paddingBottom="4dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/waistCircEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:inputType="numberDecimal"
-                android:imeOptions="actionNext"
-                android:textColor="#FFFFFF"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#FFFFFF" />
 
             <!-- Hip Circumference Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingBottom="4dp"
                 android:text="Obwód bioder (cm)"
-                android:textSize="14sp"
                 android:textColor="#FFFFFF"
-                android:paddingBottom="4dp" />
+                android:textSize="14sp" />
 
             <EditText
                 android:id="@+id/hipCircEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:inputType="numberDecimal"
-                android:imeOptions="actionDone"
-                android:textColor="#FFFFFF"
+                android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
+                android:imeOptions="actionDone"
+                android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="#FFFFFF" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -141,14 +141,14 @@
         android:id="@+id/saveButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:text="Zapisz"
-        android:textSize="16sp"
-        android:textColor="#FFFFFF"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="#4CAF50"
         android:elevation="2dp"
-        app:cornerRadius="8dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="24dp" />
+        android:text="Zapisz"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        app:cornerRadius="8dp" />
 
     <View
         android:layout_width="match_parent"
@@ -159,9 +159,9 @@
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        app:cardBackgroundColor="#424242"
         app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#424242">
+        app:cardElevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -172,41 +172,41 @@
                 android:id="@+id/menuButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_menu"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Menu"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
+                android:src="@drawable/ic_menu"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
             <ImageButton
                 android:id="@+id/homeButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_home"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Home"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
-                app:layout_constraintStart_toEndOf="@id/menuButton"
+                android:src="@drawable/ic_home"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/profileButton"
+                app:layout_constraintStart_toEndOf="@id/menuButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
             <ImageButton
                 android:id="@+id/profileButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_profile"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Profil"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
+                android:src="@drawable/ic_profile"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

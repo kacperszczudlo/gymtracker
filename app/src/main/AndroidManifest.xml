@@ -68,9 +68,9 @@
             android:name=".UpdateMeasurementsActivity"
             android:exported="true" />
 
-<!--        <activity-->
-<!--            android:name=".TrainingGoalsActivity"-->
-<!--            android:exported="true" />-->
+        <activity
+            android:name=".TrainingGoalsActivity"
+            android:exported="true" />
 
     </application>
 
