@@ -8,19 +8,27 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.example.gymtracker.R;
+
+import api.model.ApiClient;
+import api.model.ApiService;
+import api.model.UpdateUserProfileRequest;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfileActivity extends AppCompatActivity {
+
     private RadioGroup genderRadioGroup;
     private EditText heightEditText, armCircEditText, waistCircEditText, hipCircEditText, weightEditText;
-    private DatabaseHelper dbHelper;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        dbHelper = new DatabaseHelper(this);
+        apiService = ApiClient.getClient(this).create(ApiService.class);
+
         genderRadioGroup = findViewById(R.id.genderRadioGroup);
         heightEditText = findViewById(R.id.heightEditText);
         armCircEditText = findViewById(R.id.circumference1EditText);
@@ -31,7 +39,7 @@ public class ProfileActivity extends AppCompatActivity {
 
         finishButton.setOnClickListener(v -> {
             int selectedGenderId = genderRadioGroup.getCheckedRadioButtonId();
-            String gender = selectedGenderId == R.id.femaleRadioButton ? "Kobieta" : "Mężczyzna";
+            String gender = selectedGenderId == R.id.femaleRadioButton ? "female" : "male";
             String heightStr = heightEditText.getText().toString();
             String armCircStr = armCircEditText.getText().toString();
             String waistCircStr = waistCircEditText.getText().toString();
@@ -43,11 +51,11 @@ public class ProfileActivity extends AppCompatActivity {
                 return;
             }
 
-            float height = Float.parseFloat(heightStr);
-            float armCirc = Float.parseFloat(armCircStr);
-            float waistCirc = Float.parseFloat(waistCircStr);
-            float hipCirc = Float.parseFloat(hipCircStr);
-            float weight = Float.parseFloat(weightStr);
+            int height = Integer.parseInt(heightStr);
+            double arm = Double.parseDouble(armCircStr);
+            double waist = Double.parseDouble(waistCircStr);
+            double hip = Double.parseDouble(hipCircStr);
+            double weight = Double.parseDouble(weightStr);
 
             SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
             int userId = prefs.getInt("user_id", -1);
@@ -57,14 +65,26 @@ public class ProfileActivity extends AppCompatActivity {
                 return;
             }
 
-            if (dbHelper.saveProfile(userId, gender, height, armCirc, waistCirc, hipCirc, weight)) {
-                Intent intent = new Intent(ProfileActivity.this, TrainingDaysActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                Toast.makeText(this, "Błąd podczas zapisu profilu", Toast.LENGTH_SHORT).show();
-            }
+            UpdateUserProfileRequest request = new UpdateUserProfileRequest(
+                    gender, height, weight, waist, arm, hip
+            );
 
+            apiService.updateUserProfile(userId, request).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (response.isSuccessful()) {
+                        startActivity(new Intent(ProfileActivity.this, TrainingDaysActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(ProfileActivity.this, "Błąd serwera przy zapisie profilu", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Toast.makeText(ProfileActivity.this, "Błąd sieci: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
         });
     }
 }
