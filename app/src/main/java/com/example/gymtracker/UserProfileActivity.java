@@ -41,7 +41,7 @@ public class UserProfileActivity extends AppCompatActivity {
         TextView progressBenchPressTextView = findViewById(R.id.progressBenchPressTextView);
         Button achievementsButton = findViewById(R.id.achievementsButton);
         Button accountSettingsButton = findViewById(R.id.accountSettingsButton);
-        Button dataAnalysisButton = findViewById(R.id.dataAnalysisButton);
+        Button fullProgressButton = findViewById(R.id.fullProgressButton);
         Button logoutButton = findViewById(R.id.logoutButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
@@ -57,6 +57,10 @@ public class UserProfileActivity extends AppCompatActivity {
         loadUserData(usernameTextView, progressWeightTextView, progressArmCircTextView, progressBenchPressTextView);
 
         // Set click listeners
+        fullProgressButton.setOnClickListener(v -> {
+            Toast.makeText(this, "Pełen progres - wkrótce dostępna", Toast.LENGTH_SHORT).show();
+        });
+
         achievementsButton.setOnClickListener(v -> {
             Toast.makeText(this, "Osiągnięcia - wkrótce dostępne", Toast.LENGTH_SHORT).show();
         });
@@ -64,10 +68,6 @@ public class UserProfileActivity extends AppCompatActivity {
         accountSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(UserProfileActivity.this, UpdateUserDataActivity.class);
             startActivity(intent);
-        });
-
-        dataAnalysisButton.setOnClickListener(v -> {
-            Toast.makeText(this, "Analiza danych - wkrótce dostępna", Toast.LENGTH_SHORT).show();
         });
 
         logoutButton.setOnClickListener(v -> {
