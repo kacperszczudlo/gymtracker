@@ -187,7 +187,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.insert(TABLE_USERS, null, adminValues);
 
         // Dodanie przykładowych ćwiczeń
-        String[] exercises = {"Przysiady", "Wyciskanie sztangi", "Martwy ciąg", "Pompki", "Podciąganie"};
+        String[] exercises = {"Przysiady", "Wyciskanie sztangi", "Martwy ciąg", "Rumuński martwy ciąg", "Wyprosty na maszynie", "Łydkownica", "Rozpiętki", "Wyciskanie hantli", "Wyciskanie francuskie", "Prostowanie ramion", "Wznosy bokiem", "Wiosłowanie sztangą", "T-Bar", "Uginanie przedramion", "Młotki" };
         for (String exercise : exercises) {
             ContentValues exerciseValues = new ContentValues();
             exerciseValues.put(COLUMN_EXERCISE_NAME, exercise);

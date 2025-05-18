@@ -6,11 +6,17 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import java.util.ArrayList;
 
 public class TrainingSetupActivity extends AppCompatActivity {
@@ -84,8 +90,9 @@ public class TrainingSetupActivity extends AppCompatActivity {
     }
 
     private void showExerciseDialog() {
-        Dialog dialog = new Dialog(this);
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
         dialog.setContentView(R.layout.dialog_exercise_list);
+
         RecyclerView dialogRecyclerView = dialog.findViewById(R.id.dialogExerciseRecyclerView);
         Button cancelButton = dialog.findViewById(R.id.cancelButton);
 
@@ -101,12 +108,28 @@ public class TrainingSetupActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             dialog.dismiss();
         });
-        dialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        dialogRecyclerView.setAdapter(dialogAdapter);
 
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        if (dialogRecyclerView != null) {
+            dialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            dialogRecyclerView.setAdapter(dialogAdapter);
+        }
+
+        if (cancelButton != null) {
+            cancelButton.setOnClickListener(v -> dialog.dismiss());
+        }
+
         dialog.show();
+
+        // Rozszerzenie na 100% wysokości
+        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (bottomSheet != null) {
+
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            bottomSheet.setLayoutParams(bottomSheet.getLayoutParams());
+        }
     }
+
 
     private void loadExercisesForDay() {
         if (isLogEdit) {                               // 🔧 edytujemy LOG z dzisiejszego treningu
