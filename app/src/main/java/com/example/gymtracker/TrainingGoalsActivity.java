@@ -19,12 +19,12 @@ public class TrainingGoalsActivity extends AppCompatActivity {
     private static final String TAG = "TrainingGoalsActivity";
     private DatabaseHelper dbHelper;
     private int userId;
-    private EditText targetWeightEditText;
-    private TextView weightProgressTextView;
-    private ProgressBar weightProgressBar;
-    private float currentWeight;
-    private float targetWeight;
-    private float startWeight;
+    private EditText targetWeightEditText, targetTrainingDaysEditText;
+    private TextView weightProgressTextView, trainingDaysProgressTextView;
+    private ProgressBar weightProgressBar, trainingDaysProgressBar;
+    private float currentWeight, targetWeight, startWeight;
+    private int currentTrainingDays, targetTrainingDays;
+    private static final int DEFAULT_TARGET_TRAINING_DAYS = 3; // Default goal: 3 training days
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +47,11 @@ public class TrainingGoalsActivity extends AppCompatActivity {
 
         // Initialize views
         targetWeightEditText = findViewById(R.id.targetWeightEditText);
+        targetTrainingDaysEditText = findViewById(R.id.targetTrainingDaysEditText);
         weightProgressTextView = findViewById(R.id.weightProgressTextView);
+        trainingDaysProgressTextView = findViewById(R.id.trainingDaysProgressTextView);
         weightProgressBar = findViewById(R.id.weightProgressBar);
+        trainingDaysProgressBar = findViewById(R.id.trainingDaysProgressBar);
         Button saveGoalsButton = findViewById(R.id.saveGoalsButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton homeButton = findViewById(R.id.homeButton);
@@ -56,7 +59,9 @@ public class TrainingGoalsActivity extends AppCompatActivity {
 
         // Null checks for critical views
         if (targetWeightEditText == null || weightProgressTextView == null || weightProgressBar == null ||
-                saveGoalsButton == null || menuButton == null || homeButton == null || profileButton == null) {
+                targetTrainingDaysEditText == null || trainingDaysProgressTextView == null ||
+                trainingDaysProgressBar == null || saveGoalsButton == null ||
+                menuButton == null || homeButton == null || profileButton == null) {
             Log.e(TAG, "One or more views not found in layout");
             Toast.makeText(this, "Błąd: Nie znaleziono elementów interfejsu", Toast.LENGTH_SHORT).show();
             finish();
@@ -64,7 +69,7 @@ public class TrainingGoalsActivity extends AppCompatActivity {
         }
 
         // Set click listeners
-        saveGoalsButton.setOnClickListener(v -> saveTargetWeight());
+        saveGoalsButton.setOnClickListener(v -> saveGoals());
 
         menuButton.setOnClickListener(v -> {
             Intent intent = new Intent(TrainingGoalsActivity.this, AccountSettingsActivity.class);
@@ -81,25 +86,27 @@ public class TrainingGoalsActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        // Load initial weight data
+        // Load initial data
         loadWeightData();
+        loadTrainingDaysData();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // Reload weight data to reflect changes in current weight
+        // Reload data to reflect changes
         loadWeightData();
+        loadTrainingDaysData();
     }
 
     private void loadWeightData() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         try {
             // Load current weight from profile
-            Cursor profileCursor = db.query("profile", new String[]{"weight"},
-                    "user_id=?", new String[]{String.valueOf(userId)}, null, null, null);
+            Cursor profileCursor = db.query(DatabaseHelper.TABLE_PROFILE, new String[]{DatabaseHelper.COLUMN_WEIGHT},
+                    DatabaseHelper.COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
             if (profileCursor.moveToFirst()) {
-                currentWeight = profileCursor.getFloat(profileCursor.getColumnIndexOrThrow("weight"));
+                currentWeight = profileCursor.getFloat(profileCursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WEIGHT));
                 Log.d(TAG, "Loaded currentWeight: " + currentWeight);
             } else {
                 currentWeight = 0f;
@@ -109,8 +116,7 @@ public class TrainingGoalsActivity extends AppCompatActivity {
             profileCursor.close();
 
             // Load target weight and start weight from user_goals
-            Cursor goalsCursor = db.query("user_goals", new String[]{"target_weight", "start_weight"},
-                    "user_id=?", new String[]{String.valueOf(userId)}, null, null, null);
+            Cursor goalsCursor = dbHelper.getUserGoals(userId);
             if (goalsCursor.moveToFirst()) {
                 targetWeight = goalsCursor.getFloat(goalsCursor.getColumnIndexOrThrow("target_weight"));
                 startWeight = goalsCursor.getFloat(goalsCursor.getColumnIndexOrThrow("start_weight"));
@@ -118,7 +124,7 @@ public class TrainingGoalsActivity extends AppCompatActivity {
                 Log.d(TAG, "Loaded targetWeight: " + targetWeight + ", startWeight: " + startWeight);
             } else {
                 targetWeight = 0f;
-                startWeight = currentWeight; // Default to current weight if no goal exists
+                startWeight = currentWeight;
                 targetWeightEditText.setText("");
                 Log.w(TAG, "No goal data found in user_goals for userId: " + userId);
             }
@@ -128,101 +134,157 @@ public class TrainingGoalsActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(TAG, "Error loading weight data: " + e.getMessage(), e);
             Toast.makeText(this, "Błąd podczas ładowania danych", Toast.LENGTH_SHORT).show();
+        } finally {
+            db.close();
         }
     }
 
-    private void saveTargetWeight() {
-        String targetWeightStr = targetWeightEditText.getText().toString().trim();
-        if (targetWeightStr.isEmpty()) {
-            Toast.makeText(this, "Wprowadź docelową wagę", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        float newTargetWeight;
+    private void loadTrainingDaysData() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
         try {
-            newTargetWeight = Float.parseFloat(targetWeightStr);
-            if (newTargetWeight <= 0) {
-                Toast.makeText(this, "Waga musi być większa od 0", Toast.LENGTH_SHORT).show();
-                return;
+            // Count active training days
+            currentTrainingDays = dbHelper.getActiveTrainingDaysCount(userId);
+            Log.d(TAG, "Loaded currentTrainingDays: " + currentTrainingDays);
+
+            // Load target training days from user_goals
+            Cursor goalsCursor = dbHelper.getUserGoals(userId);
+            if (goalsCursor.moveToFirst()) {
+                targetTrainingDays = goalsCursor.getInt(goalsCursor.getColumnIndexOrThrow("target_training_days"));
+                targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
+                Log.d(TAG, "Loaded targetTrainingDays: " + targetTrainingDays);
+            } else {
+                targetTrainingDays = DEFAULT_TARGET_TRAINING_DAYS;
+                targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
+                Log.w(TAG, "No training days goal found, using default: " + targetTrainingDays);
             }
-        } catch (NumberFormatException e) {
-            Toast.makeText(this, "Nieprawidłowy format wagi", Toast.LENGTH_SHORT).show();
-            return;
+            goalsCursor.close();
+
+            updateTrainingDaysProgress();
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading training days data: " + e.getMessage(), e);
+            Toast.makeText(this, "Błąd podczas ładowania danych treningowych", Toast.LENGTH_SHORT).show();
+        } finally {
+            db.close();
         }
+    }
 
+    private void saveGoals() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("user_id", userId);
-        values.put("target_weight", newTargetWeight);
-        values.put("start_weight", currentWeight); // Store current weight as start weight
-
+        db.beginTransaction();
         try {
-            db.beginTransaction();
-            // Delete existing goal to avoid duplicates
-            db.delete("user_goals", "user_id=?", new String[]{String.valueOf(userId)});
-            // Insert new goal
-            long result = db.insert("user_goals", null, values);
-            if (result != -1) {
+            // Save weight goal
+            String targetWeightStr = targetWeightEditText.getText().toString().trim();
+            float newTargetWeight = 0f;
+            if (!targetWeightStr.isEmpty()) {
+                newTargetWeight = Float.parseFloat(targetWeightStr);
+                if (newTargetWeight <= 0) {
+                    Toast.makeText(this, "Waga musi być większa od 0", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            // Save training days goal
+            String targetTrainingDaysStr = targetTrainingDaysEditText.getText().toString().trim();
+            int newTargetTrainingDays = DEFAULT_TARGET_TRAINING_DAYS;
+            if (!targetTrainingDaysStr.isEmpty()) {
+                newTargetTrainingDays = Integer.parseInt(targetTrainingDaysStr);
+                if (newTargetTrainingDays <= 0 || newTargetTrainingDays > 7) {
+                    Toast.makeText(this, "Liczba dni treningowych musi być między 1 a 7", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            ContentValues values = new ContentValues();
+            values.put(DatabaseHelper.COLUMN_USER_ID, userId);
+            if (newTargetWeight > 0) {
+                values.put("target_weight", newTargetWeight);
+                values.put("start_weight", currentWeight);
+            }
+            values.put("target_training_days", newTargetTrainingDays);
+
+            // Save goals using DatabaseHelper method, passing the open database
+            boolean success = dbHelper.saveUserGoals(userId, values, db);
+            if (success) {
                 db.setTransactionSuccessful();
-                Toast.makeText(this, "Cel wagi zapisany", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Cele zapisane", Toast.LENGTH_SHORT).show();
                 targetWeight = newTargetWeight;
                 startWeight = currentWeight;
-                Log.d(TAG, "Saved targetWeight: " + targetWeight + ", startWeight: " + startWeight);
+                targetTrainingDays = newTargetTrainingDays;
                 updateWeightProgress();
+                updateTrainingDaysProgress();
+                Log.d(TAG, "Saved goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight + ", targetTrainingDays=" + targetTrainingDays);
             } else {
-                Toast.makeText(this, "Błąd podczas zapisywania celu", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Failed to insert into user_goals");
+                Toast.makeText(this, "Błąd podczas zapisywania celów", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Failed to save user_goals");
             }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Nieprawidłowy format danych", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Invalid input format: " + e.getMessage(), e);
         } catch (Exception e) {
-            Log.e(TAG, "Error saving target weight: " + e.getMessage(), e);
-            Toast.makeText(this, "Błąd podczas zapisywania celu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Błąd podczas zapisywania celów", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error saving goals: " + e.getMessage(), e);
         } finally {
             db.endTransaction();
+            db.close();
         }
     }
 
     private void updateWeightProgress() {
-        Log.d(TAG, "Updating progress: currentWeight=" + currentWeight + ", targetWeight=" + targetWeight + ", startWeight=" + startWeight);
+        Log.d(TAG, "Updating weight progress: currentWeight=" + currentWeight + ", targetWeight=" + targetWeight + ", startWeight=" + startWeight);
 
         if (currentWeight == 0 || targetWeight == 0 || startWeight == 0) {
             weightProgressTextView.setText("Progres: 0%");
             weightProgressBar.setProgress(0);
-            Log.w(TAG, "Progress set to 0: one or more weights are 0");
+            Log.w(TAG, "Weight progress set to 0: one or more weights are 0");
             return;
         }
 
         if (Math.abs(targetWeight - startWeight) < 0.1f) {
             weightProgressTextView.setText("Progres: 0%");
             weightProgressBar.setProgress(0);
-            Log.w(TAG, "Progress set to 0: targetWeight and startWeight are too close");
+            Log.w(TAG, "Weight progress set to 0: targetWeight and startWeight are too close");
             return;
         }
 
         float progress;
         if (targetWeight > startWeight) {
-            // Weight gain goal
             progress = ((currentWeight - startWeight) / (targetWeight - startWeight)) * 100;
-            Log.d(TAG, "Weight gain: progress = ((currentWeight - startWeight) / (targetWeight - startWeight)) * 100");
         } else {
-            // Weight loss goal
             progress = ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100;
-            Log.d(TAG, "Weight loss: progress = ((startWeight - currentWeight) / (startWeight - targetWeight)) * 100");
         }
 
-        // Clamp progress between 0 and 100
-        if (progress < 0) progress = 0;
-        if (progress > 100) progress = 100;
-
+        progress = Math.max(0, Math.min(100, progress));
         if (Float.isNaN(progress) || Float.isInfinite(progress)) {
             progress = 0;
-            Log.w(TAG, "Invalid progress value, setting to 0");
+            Log.w(TAG, "Invalid weight progress value, setting to 0");
         }
 
         int progressInt = Math.round(progress);
         runOnUiThread(() -> {
             weightProgressTextView.setText("Progres: " + progressInt + "%");
             weightProgressBar.setProgress(progressInt);
-            Log.d(TAG, "Updated UI: progress=" + progressInt + "%");
+            Log.d(TAG, "Updated weight UI: progress=" + progressInt + "%");
+        });
+    }
+
+    private void updateTrainingDaysProgress() {
+        Log.d(TAG, "Updating training days progress: currentTrainingDays=" + currentTrainingDays + ", targetTrainingDays=" + targetTrainingDays);
+
+        if (targetTrainingDays == 0) {
+            trainingDaysProgressTextView.setText("Progres: 0/0");
+            trainingDaysProgressBar.setProgress(0);
+            Log.w(TAG, "Training days progress set to 0: targetTrainingDays is 0");
+            return;
+        }
+
+        float progress = ((float) currentTrainingDays / targetTrainingDays) * 100;
+        progress = Math.max(0, Math.min(100, progress));
+        int progressInt = Math.round(progress);
+
+        runOnUiThread(() -> {
+            trainingDaysProgressTextView.setText("Progres: " + currentTrainingDays + "/" + targetTrainingDays);
+            trainingDaysProgressBar.setProgress(progressInt);
+            Log.d(TAG, "Updated training days UI: progress=" + progressInt + "% (" + currentTrainingDays + "/" + targetTrainingDays + ")");
         });
     }
 }
