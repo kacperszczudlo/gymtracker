@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:background="#212121">
+
+    <!-- TIMER I PRZYCISK START -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,7 +44,44 @@
             app:layout_constraintEnd_toEndOf="parent"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- STRZAŁKI I DATA -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
 
+        <ImageButton
+            android:id="@+id/prevWeekButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_left"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Poprzedni tydzień"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="16dp" />
+
+        <TextView
+            android:id="@+id/dateTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025-05-18"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:layout_marginEnd="16dp"/>
+
+        <ImageButton
+            android:id="@+id/nextWeekButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_right"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Następny tydzień"
+            android:scaleType="fitCenter"
+            app:tint="#FFFFFF"/>
+    </LinearLayout>
 
     <include
         layout="@layout/calendar_layout"
@@ -82,17 +121,13 @@
         android:layout_marginTop="-8dp"
         android:layout_marginBottom="16dp"/>
 
-
-
-
-
     <!-- Bottom Navigation Bar -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        app:cardBackgroundColor="#424242"
         app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#424242">
+        app:cardElevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -103,43 +138,42 @@
                 android:id="@+id/menuButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_menu"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Menu"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
+                android:src="@drawable/ic_menu"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
             <ImageButton
                 android:id="@+id/homeButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_home"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Home"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
-                app:layout_constraintStart_toEndOf="@id/menuButton"
+                android:src="@drawable/ic_home"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/profileButton"
+                app:layout_constraintStart_toEndOf="@id/menuButton"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
             <ImageButton
                 android:id="@+id/profileButton"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
-                android:src="@drawable/ic_profile"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Profil"
                 android:scaleType="fitCenter"
-                app:tint="#FFFFFF"
+                android:src="@drawable/ic_profile"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:tint="#FFFFFF" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
-
 </LinearLayout>
