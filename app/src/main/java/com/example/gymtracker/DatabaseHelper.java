@@ -1021,7 +1021,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(COLUMN_USER_ID, userId);
             long result = db.insert(TABLE_USER_GOALS, null, values);
             if (result == -1) {
-                Log.e("DB_ERROR", "Failed to save user goals for userId=" + userId);
+                Log.e("DB_ERROR", "Failed to save user goals for userId=" + userId + ", values=" + values.toString());
                 return false;
             }
             Log.d("DatabaseHelper", "Saved user goals: userId=" + userId + ", values=" + values.toString());
@@ -1238,6 +1238,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return historyList;
     }
 
+    public float getBestWeightForExercise(int userId, String exerciseName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(
+                "SELECT MAX(de.weight) FROM " + TABLE_DAY_EXERCISES + " de " +
+                        "JOIN " + TABLE_TRAINING_DAYS + " td ON de." + COLUMN_DAY_EXERCISE_DAY_ID + " = td." + COLUMN_DAY_ID + " " +
+                        "WHERE td." + COLUMN_DAY_USER_ID + " = ? AND de." + COLUMN_DAY_EXERCISE_NAME + " = ?",
+                new String[]{String.valueOf(userId), exerciseName}
+        );
+        float maxWeight = 0;
+        if (cursor.moveToFirst()) {
+            maxWeight = cursor.getFloat(0);
+        }
+        cursor.close();
+        return maxWeight;
+    }
 
 
 

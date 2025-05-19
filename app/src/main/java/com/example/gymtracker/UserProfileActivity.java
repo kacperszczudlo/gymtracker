@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.widget.Button;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.gymtracker.databinding.ActivityUserProfileBinding;
 
@@ -50,12 +52,15 @@ public class UserProfileActivity extends AppCompatActivity {
         });
 
         binding.achievementsButton.setOnClickListener(v -> {
-            // TODO: Implement achievements activity
+            Intent intent = new Intent(this, AchievementsActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_SETTINGS);
         });
+
         binding.accountSettingsButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, UpdateUserDataActivity.class);
             startActivityForResult(intent, REQUEST_CODE_SETTINGS);
         });
+
         binding.logoutButton.setOnClickListener(v -> {
             SharedPreferences.Editor editor = prefs.edit();
             editor.clear();
