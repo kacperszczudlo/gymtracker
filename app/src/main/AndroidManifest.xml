@@ -72,6 +72,11 @@
             android:name=".TrainingGoalsActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".FullProgressActivity"
+            android:exported="true" />
+
+
     </application>
 
 </manifest>

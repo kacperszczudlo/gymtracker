@@ -10,6 +10,7 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.gymtracker.databinding.ActivityUserProfileBinding;
 
+import java.util.List;
 import java.util.Locale;
 
 public class UserProfileActivity extends AppCompatActivity {
@@ -36,20 +37,18 @@ public class UserProfileActivity extends AppCompatActivity {
             return;
         }
 
-        // Debug database contents
         dbHelper.debugDatabase(userId);
 
-        // Set username
         String username = dbHelper.getUsername(userId);
         binding.usernameTextView.setText(username != null ? username : "Brak danych");
 
-        // Fetch and display progress data
         displayProgressData();
 
-        // Button listeners
         binding.fullProgressButton.setOnClickListener(v -> {
-            // TODO: Implement full progress view
+            Intent intent = new Intent(this, FullProgressActivity.class);
+            startActivity(intent);
         });
+
         binding.achievementsButton.setOnClickListener(v -> {
             // TODO: Implement achievements activity
         });
@@ -65,7 +64,6 @@ public class UserProfileActivity extends AppCompatActivity {
             finish();
         });
 
-        // Bottom navigation
         binding.menuButton.setOnClickListener(v -> {
             Intent intent = new Intent(this, AccountSettingsActivity.class);
             startActivityForResult(intent, REQUEST_CODE_SETTINGS);
@@ -82,23 +80,21 @@ public class UserProfileActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_SETTINGS && resultCode == RESULT_OK) {
-            displayProgressData(); // Refresh data after profile update
+            displayProgressData();
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        displayProgressData(); // Refresh data when activity resumes
+        displayProgressData();
     }
 
     private void displayProgressData() {
-        // Fetch latest profile data
         float[] latestData = dbHelper.getLatestProfileData(userId); // [weight, armCirc, waistCirc, hipCirc, height]
         float latestBenchPress = dbHelper.getLatestBenchPress(userId);
         float initialBenchPress = dbHelper.getInitialBenchPress(userId);
 
-        // Fetch initial weight from user_goals
         float initialWeight = 0f;
         Cursor goalsCursor = dbHelper.getUserGoals(userId);
         if (goalsCursor.moveToFirst()) {
@@ -106,23 +102,19 @@ public class UserProfileActivity extends AppCompatActivity {
         }
         goalsCursor.close();
 
-        // Since arm circumference isn't in user_goals, use initial profile data or 0 as fallback
         float[] initialData = dbHelper.getInitialProfileData(userId); // [weight, armCirc]
-        float initialArmCirc = initialData[1]; // Use 0 if no initial arm data
+        float initialArmCirc = initialData[1];
 
-        // Calculate progress
-        float weightProgress = latestData[0] - initialWeight; // Latest weight - Initial weight from user_goals
-        float armProgress = latestData[1] - initialArmCirc;   // Latest arm circ - Initial arm circ
+        float weightProgress = latestData[0] - initialWeight;
         float benchPressProgress = latestBenchPress - initialBenchPress;
 
-        Log.d("UserProfileActivity", "Initial Weight (user_goals): " + initialWeight + ", Latest Weight: " + latestData[0] + ", Weight Progress: " + weightProgress);
-        Log.d("UserProfileActivity", "Initial Arm: " + initialArmCirc + ", Latest Arm: " + latestData[1] + ", Arm Progress: " + armProgress);
+        Log.d("UserProfileActivity", "Initial Weight: " + initialWeight + ", Latest Weight: " + latestData[0] + ", Weight Progress: " + weightProgress);
+        Log.d("UserProfileActivity", "Initial Arm: " + initialArmCirc + ", Latest Arm: " + latestData[1]);
         Log.d("UserProfileActivity", "Initial Bench: " + initialBenchPress + ", Latest Bench: " + latestBenchPress + ", Bench Progress: " + benchPressProgress);
 
-        // Weight progress
+        // Weight
         if (initialWeight == 0 || latestData[0] == 0) {
             binding.progressWeightTextView.setText("Brak danych");
-            Log.d("UserProfileActivity", "Weight: Missing initial or latest data");
         } else {
             String weightText = String.format(Locale.US, "%.1f kg", latestData[0]);
             String progressText = String.format(Locale.US, " (%s%.1f kg)", weightProgress >= 0 ? "+" : "-", Math.abs(weightProgress));
@@ -136,27 +128,33 @@ public class UserProfileActivity extends AppCompatActivity {
             binding.progressWeightTextView.setText(spannableWeight);
         }
 
-        // Arm circumference progress
-        if (initialArmCirc == 0 || latestData[1] == 0) {
-            binding.progressArmCircTextView.setText("Brak danych");
-            Log.d("UserProfileActivity", "Arm: Missing initial or latest data");
-        } else {
-            String armText = String.format(Locale.US, "%.1f cm", latestData[1]);
-            String progressText = String.format(Locale.US, " (%s%.1f cm)", armProgress >= 0 ? "+" : "-", Math.abs(armProgress));
+        // Arm Circumference (from history)
+        List<DatabaseHelper.BodyStatEntry> history = dbHelper.getBodyStatHistory(userId);
+        if (history.size() >= 2) {
+            float firstArm = history.get(0).armCirc;
+            float lastArm = history.get(history.size() - 1).armCirc;
+            float armDelta = lastArm - firstArm;
+
+            String armText = String.format(Locale.US, "%.1f cm", lastArm);
+            String progressText = String.format(Locale.US, " (%s%.1f cm)", armDelta >= 0 ? "+" : "-", Math.abs(armDelta));
             SpannableString spannableArm = new SpannableString(armText + progressText);
             int start = armText.length();
             int end = (armText + progressText).length();
             spannableArm.setSpan(
-                    new ForegroundColorSpan(getResources().getColor(armProgress >= 0 ? R.color.green : R.color.red, getTheme())),
+                    new ForegroundColorSpan(getResources().getColor(armDelta >= 0 ? R.color.green : R.color.red, getTheme())),
                     start, end, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
             );
             binding.progressArmCircTextView.setText(spannableArm);
+        } else if (history.size() == 1) {
+            float arm = history.get(0).armCirc;
+            binding.progressArmCircTextView.setText(String.format(Locale.US, "%.1f cm", arm));
+        } else {
+            binding.progressArmCircTextView.setText("Brak danych");
         }
 
-        // Bench press progress (unchanged)
+        // Bench Press
         if (initialBenchPress == 0 || latestBenchPress == 0) {
             binding.progressBenchPressTextView.setText("Brak danych");
-            Log.d("UserProfileActivity", "Bench: Missing initial or latest data");
         } else {
             String benchText = String.format(Locale.US, "%.1f kg", latestBenchPress);
             String progressText = String.format(Locale.US, " (%s%.1f kg)", benchPressProgress >= 0 ? "+" : "-", Math.abs(benchPressProgress));

@@ -86,6 +86,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_LOG_REPS = "reps";
     private static final String COLUMN_LOG_WEIGHT = "weight";
 
+
+    // Tabela historii pomiarów
+    public static final String TABLE_BODY_STAT_HISTORY = "body_stat_history";
+    public static final String COLUMN_HISTORY_ID = "history_id";
+    public static final String COLUMN_HISTORY_USER_ID = "user_id";
+    public static final String COLUMN_HISTORY_DATE = "date";
+    public static final String COLUMN_HISTORY_WEIGHT = "weight";
+    public static final String COLUMN_HISTORY_ARM_CIRC = "arm_circumference";
+    public static final String COLUMN_HISTORY_WAIST_CIRC = "waist_circumference";
+    public static final String COLUMN_HISTORY_HIP_CIRC = "hip_circumference";
+
+
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -173,6 +185,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_LOG_REPS + " INTEGER," +
                 COLUMN_LOG_WEIGHT + " REAL," +
                 "FOREIGN KEY (" + COLUMN_LOG_EXERCISE_ID + ") REFERENCES " + TABLE_LOG_EXERCISE + "(" + COLUMN_LOG_EXERCISE_ID + "))");
+
+
+        String createBodyStatHistoryTable = "CREATE TABLE " + TABLE_BODY_STAT_HISTORY + " (" +
+                COLUMN_HISTORY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_HISTORY_USER_ID + " INTEGER, " +
+                COLUMN_HISTORY_DATE + " TEXT, " +
+                COLUMN_HISTORY_WEIGHT + " REAL, " +
+                COLUMN_HISTORY_ARM_CIRC + " REAL, " +
+                COLUMN_HISTORY_WAIST_CIRC + " REAL, " +
+                COLUMN_HISTORY_HIP_CIRC + " REAL, " +
+                "FOREIGN KEY(" + COLUMN_HISTORY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))";
+        db.execSQL(createBodyStatHistoryTable);
+
+
 
         ContentValues adminValues = new ContentValues();
         adminValues.put(COLUMN_USERNAME, "admin");
@@ -1143,4 +1169,78 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return count;
     }
+
+
+    //historia pomiarów
+
+    private String getCurrentDate() {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        return sdf.format(new Date());
+    }
+
+
+    public void insertBodyStatHistory(int userId, float weight, float armCirc, float waistCirc, float hipCirc) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_HISTORY_USER_ID, userId);
+        values.put(COLUMN_HISTORY_DATE, getCurrentDate());
+        values.put(COLUMN_HISTORY_WEIGHT, weight);
+        values.put(COLUMN_HISTORY_ARM_CIRC, armCirc);
+        values.put(COLUMN_HISTORY_WAIST_CIRC, waistCirc);
+        values.put(COLUMN_HISTORY_HIP_CIRC, hipCirc);
+        db.insert(TABLE_BODY_STAT_HISTORY, null, values);
+    }
+
+    public static class BodyStatEntry {
+        public String date;
+        public float weight;
+        public float armCirc;
+        public float waistCirc;
+        public float hipCirc;
+
+        public BodyStatEntry(String date, float weight, float armCirc, float waistCirc, float hipCirc) {
+            this.date = date;
+            this.weight = weight;
+            this.armCirc = armCirc;
+            this.waistCirc = waistCirc;
+            this.hipCirc = hipCirc;
+        }
+    }
+
+
+    public List<BodyStatEntry> getBodyStatHistory(int userId) {
+        List<BodyStatEntry> historyList = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT " +
+                        COLUMN_HISTORY_DATE + ", " +
+                        COLUMN_HISTORY_WEIGHT + ", " +
+                        COLUMN_HISTORY_ARM_CIRC + ", " +
+                        COLUMN_HISTORY_WAIST_CIRC + ", " +
+                        COLUMN_HISTORY_HIP_CIRC +
+                        " FROM " + TABLE_BODY_STAT_HISTORY +
+                        " WHERE " + COLUMN_HISTORY_USER_ID + " = ?" +
+                        " ORDER BY " + COLUMN_HISTORY_DATE + " ASC",
+                new String[]{String.valueOf(userId)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                String date = cursor.getString(0);
+                float weight = cursor.getFloat(1);
+                float arm = cursor.getFloat(2);
+                float waist = cursor.getFloat(3);
+                float hip = cursor.getFloat(4);
+                historyList.add(new BodyStatEntry(date, weight, arm, waist, hip));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        Log.d("DBHelper", "Loaded " + historyList.size() + " body stat entries for user " + userId);
+
+        return historyList;
+    }
+
+
+
+
+
+
 }

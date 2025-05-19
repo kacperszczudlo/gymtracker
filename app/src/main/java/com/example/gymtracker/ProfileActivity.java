@@ -58,6 +58,8 @@ public class ProfileActivity extends AppCompatActivity {
             }
 
             if (dbHelper.saveProfile(userId, gender, height, armCirc, waistCirc, hipCirc, weight)) {
+
+                dbHelper.insertBodyStatHistory(userId, weight, armCirc, waistCirc, hipCirc);
                 Intent intent = new Intent(ProfileActivity.this, TrainingDaysActivity.class);
                 startActivity(intent);
                 finish();
