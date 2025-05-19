@@ -7,18 +7,17 @@
     android:background="#212121"
     android:padding="16dp">
 
-    <!-- Title -->
+    <!-- Nagłówek -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:paddingBottom="16dp"
-        android:text="Wprowadź dane"
+        android:layout_marginBottom="16dp"
+        android:text="Cele treningowe"
         android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textSize="24sp" />
 
-    <!-- Input Fields in CardView -->
+    <!-- Sekcja Waga -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,122 +32,116 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Height Field -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:text="Wzrost (cm)"
+                android:layout_marginBottom="8dp"
+                android:text="Docelowa waga (kg)"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="18sp" />
 
             <EditText
-                android:id="@+id/heightEditText"
+                android:id="@+id/targetWeightEditText"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="12dp"
                 android:backgroundTint="#4CAF50"
-                android:imeOptions="actionNext"
+                android:hint="Wprowadź wagę"
                 android:inputType="numberDecimal"
                 android:paddingHorizontal="12dp"
-                android:textColor="#FFFFFF" />
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B0BEC5" />
 
-            <!-- Weight Field -->
             <TextView
+                android:id="@+id/weightProgressTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:text="Waga (kg)"
+                android:layout_marginBottom="8dp"
+                android:text="Progres: 0%"
                 android:textColor="#FFFFFF"
-                android:textSize="14sp" />
+                android:textSize="16sp" />
 
-            <EditText
-                android:id="@+id/weightEditText"
+            <ProgressBar
+                android:id="@+id/weightProgressBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#4CAF50"
-                android:imeOptions="actionNext"
-                android:inputType="numberDecimal"
-                android:paddingHorizontal="12dp"
-                android:textColor="#FFFFFF" />
-
-            <!-- Arm Circumference Field -->
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:text="Obwód ramienia (cm)"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-
-            <EditText
-                android:id="@+id/armCircEditText"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#4CAF50"
-                android:imeOptions="actionNext"
-                android:inputType="numberDecimal"
-                android:paddingHorizontal="12dp"
-                android:textColor="#FFFFFF" />
-
-            <!-- Waist Circumference Field -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:text="Obwód talii (cm)"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-
-            <EditText
-                android:id="@+id/waistCircEditText"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#4CAF50"
-                android:imeOptions="actionNext"
-                android:inputType="numberDecimal"
-                android:paddingHorizontal="12dp"
-                android:textColor="#FFFFFF" />
-
-            <!-- Hip Circumference Field -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingBottom="4dp"
-                android:text="Obwód bioder (cm)"
-                android:textColor="#FFFFFF"
-                android:textSize="14sp" />
-
-            <EditText
-                android:id="@+id/hipCircEditText"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginBottom="12dp"
-                android:backgroundTint="#4CAF50"
-                android:imeOptions="actionDone"
-                android:inputType="numberDecimal"
-                android:paddingHorizontal="12dp"
-                android:textColor="#FFFFFF" />
-
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#B0BEC5"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50" />
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Save Button -->
+    <!-- Sekcja Dni Treningowe -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="#424242"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Docelowe dni treningowe w tygodniu"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/targetTrainingDaysEditText"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:backgroundTint="#4CAF50"
+                android:hint="Wprowadź liczbę dni (1-7)"
+                android:inputType="number"
+                android:paddingHorizontal="12dp"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#B0BEC5" />
+
+            <TextView
+                android:id="@+id/trainingDaysProgressTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Progres: 0/3"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp" />
+
+            <ProgressBar
+                android:id="@+id/trainingDaysProgressBar"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:backgroundTint="#B0BEC5"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#4CAF50" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Przycisk Zapisz -->
     <Button
-        android:id="@+id/saveButton"
+        android:id="@+id/saveGoalsButton"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:backgroundTint="#4CAF50"
-        android:elevation="2dp"
+        android:padding="12dp"
         android:text="Zapisz"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        app:cornerRadius="8dp" />
+        android:textSize="16sp" />
 
     <View
         android:layout_width="match_parent"

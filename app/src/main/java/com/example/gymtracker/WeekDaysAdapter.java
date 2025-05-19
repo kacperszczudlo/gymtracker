@@ -6,14 +6,14 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import java.util.Calendar; // Dodano import
+import java.util.Calendar;
 
 public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHolder> {
     private static final String[] DAYS = {"Pon", "Wt", "Śr", "Czw", "Pt", "Sob", "Niedz"};
-    private static final String[] FULL_DAYS = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
+    public static final String[] FULL_DAYS = {"Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"};
     private final OnDayClickListener listener;
-    private final int currentDayIndex; // Indeks aktualnego dnia tygodnia (0 = Poniedziałek, ..., 6 = Niedziela)
-    private int selectedDayIndex = -1;
+    private final int todayDeviceActualIndex;
+    private int selectedUserDayIndex = -1;
 
     public interface OnDayClickListener {
         void onDayClick(String dayName);
@@ -21,10 +21,9 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
 
     public WeekDaysAdapter(OnDayClickListener listener) {
         this.listener = listener;
-        // Pobierz aktualny dzień tygodnia
         Calendar calendar = Calendar.getInstance();
-        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK); // 1 = Niedziela, 2 = Poniedziałek, ..., 7 = Sobota
-        currentDayIndex = (dayOfWeek + 5) % 7; // Przesunięcie: Poniedziałek = 0, ..., Niedziela = 6
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        todayDeviceActualIndex = getOurIndexFromCalendarField(dayOfWeek);
     }
 
     @NonNull
@@ -41,30 +40,61 @@ public class WeekDaysAdapter extends RecyclerView.Adapter<WeekDaysAdapter.ViewHo
         String day = DAYS[realPosition];
         holder.dayTextView.setText(day);
 
-        // Zaznacz na zielono, jeśli pozycja odpowiada aktualnemu dniowi tygodnia
-        // Tło: priorytet dzisiejszy > kliknięty
-        if (realPosition == currentDayIndex) {
-            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_background); // zielony
-        } else if (realPosition == selectedDayIndex) {
-            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_grey_background); // szary
+        if (realPosition == todayDeviceActualIndex) {
+            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_background);
+        } else if (realPosition == selectedUserDayIndex) {
+            holder.dayTextView.setBackgroundResource(R.drawable.calendar_selected_grey_background);
         } else {
-            holder.dayTextView.setBackgroundResource(0); // brak tła
+            holder.dayTextView.setBackgroundResource(0);
         }
 
         holder.itemView.setOnClickListener(v -> {
-            selectedDayIndex = realPosition;
             listener.onDayClick(FULL_DAYS[realPosition]);
-            notifyDataSetChanged(); // odśwież wszystkie elementy
         });
     }
 
     @Override
     public int getItemCount() {
-        return Integer.MAX_VALUE; // Symuluje nieskończoną listę
+        return Integer.MAX_VALUE;
     }
 
     public String getFullDayName(int index) {
-        return FULL_DAYS[index];
+        if (index >= 0 && index < FULL_DAYS.length) {
+            return FULL_DAYS[index];
+        }
+        return "";
+    }
+
+    public int getIndexForDayName(String dayName) {
+        for (int i = 0; i < FULL_DAYS.length; i++) {
+            if (FULL_DAYS[i].equalsIgnoreCase(dayName)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public void setSelectedUserDay(String dayName) {
+        int newSelectedDayIndex = getIndexForDayName(dayName);
+        if (this.selectedUserDayIndex != newSelectedDayIndex) {
+            this.selectedUserDayIndex = newSelectedDayIndex;
+            notifyDataSetChanged();
+        }
+    }
+
+    public void clearSelectedUserDay() {
+        if (this.selectedUserDayIndex != -1) {
+            this.selectedUserDayIndex = -1;
+            notifyDataSetChanged();
+        }
+    }
+
+    public static int getOurIndexFromCalendarField(int calendarApiDayOfWeek) {
+        if (calendarApiDayOfWeek == Calendar.SUNDAY) {
+            return 6;
+        } else {
+            return calendarApiDayOfWeek - Calendar.MONDAY;
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

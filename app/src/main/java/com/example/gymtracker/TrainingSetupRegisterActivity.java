@@ -2,14 +2,20 @@ package com.example.gymtracker;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.gymtracker.R;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+
 import java.util.ArrayList;
 
 public class TrainingSetupRegisterActivity extends AppCompatActivity {
@@ -19,6 +25,7 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private String dayName;
     private long dayId;
+    private int userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +33,8 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_training_setup);
 
         dbHelper = new DatabaseHelper(this);
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        userId = prefs.getInt("user_id", -1);
         recyclerView = findViewById(R.id.exerciseRecyclerView);
         Button addExerciseButton = findViewById(R.id.addExerciseButton);
         Button nextButton = findViewById(R.id.nextButton);
@@ -53,6 +62,8 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
                     dbHelper.saveDayExercise(dayId, exercise);
                 }
             }
+            dbHelper.saveTrainingPlan(userId, dayName, exerciseList);   // :contentReference[oaicite:2]{index=2}
+
             // Wróć do TrainingDaysActivity
             Intent intent = new Intent(TrainingSetupRegisterActivity.this, TrainingDaysActivity.class);
             startActivity(intent);
@@ -61,8 +72,9 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
     }
 
     private void showExerciseDialog() {
-        Dialog dialog = new Dialog(this);
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.BottomSheetDialogTheme);
         dialog.setContentView(R.layout.dialog_exercise_list);
+
         RecyclerView dialogRecyclerView = dialog.findViewById(R.id.dialogExerciseRecyclerView);
         Button cancelButton = dialog.findViewById(R.id.cancelButton);
 
@@ -78,11 +90,26 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
             adapter.notifyDataSetChanged();
             dialog.dismiss();
         });
-        dialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        dialogRecyclerView.setAdapter(dialogAdapter);
 
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        if (dialogRecyclerView != null) {
+            dialogRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+            dialogRecyclerView.setAdapter(dialogAdapter);
+        }
+
+        if (cancelButton != null) {
+            cancelButton.setOnClickListener(v -> dialog.dismiss());
+        }
+
         dialog.show();
+
+        // Rozszerzenie na 100% wysokości
+        View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (bottomSheet != null) {
+
+            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
+            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            bottomSheet.setLayoutParams(bottomSheet.getLayoutParams());
+        }
     }
 
     private void loadExercisesForDay() {
