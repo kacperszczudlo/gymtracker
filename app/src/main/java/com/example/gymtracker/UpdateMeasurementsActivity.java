@@ -11,13 +11,14 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.Locale;
 
 public class UpdateMeasurementsActivity extends AppCompatActivity {
     private static final String TAG = "UpdateMeasurements";
     private DatabaseHelper dbHelper;
     private EditText heightEditText, armCircEditText, waistCircEditText, hipCircEditText, weightEditText;
     private int userId;
-    private String loadedGender; // Variable to store the loaded gender
+    private String loadedGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +39,6 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
             return;
         }
 
-        // Initialize views
         heightEditText = findViewById(R.id.heightEditText);
         armCircEditText = findViewById(R.id.armCircEditText);
         waistCircEditText = findViewById(R.id.waistCircEditText);
@@ -49,7 +49,6 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
         ImageButton homeButton = findViewById(R.id.homeButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
 
-        // Detailed null checks for debugging
         if (heightEditText == null) Log.e(TAG, "heightEditText is null");
         if (armCircEditText == null) Log.e(TAG, "armCircEditText is null");
         if (waistCircEditText == null) Log.e(TAG, "waistCircEditText is null");
@@ -60,7 +59,6 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
         if (homeButton == null) Log.e(TAG, "homeButton is null");
         if (profileButton == null) Log.e(TAG, "profileButton is null");
 
-        // Null checks for critical views
         if (heightEditText == null || armCircEditText == null || waistCircEditText == null ||
                 hipCircEditText == null || weightEditText == null || saveButton == null ||
                 menuButton == null || homeButton == null || profileButton == null) {
@@ -70,15 +68,15 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
             return;
         }
 
-        // Load existing profile data
         loadProfileData();
 
-        // Set click listeners
         saveButton.setOnClickListener(v -> saveMeasurements());
 
         menuButton.setOnClickListener(v -> {
             Intent intent = new Intent(UpdateMeasurementsActivity.this, AccountSettingsActivity.class);
             startActivity(intent);
+            setResult(RESULT_OK);
+            finish();
         });
 
         homeButton.setOnClickListener(v -> {
@@ -94,24 +92,24 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
 
     private void loadProfileData() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        // Columns to retrieve, including gender
         String[] projection = {
-                DatabaseHelper.COLUMN_GENDER, // Make sure COLUMN_GENDER is correctly defined in DatabaseHelper
+                DatabaseHelper.COLUMN_GENDER,
                 DatabaseHelper.COLUMN_HEIGHT,
                 DatabaseHelper.COLUMN_ARM_CIRC,
                 DatabaseHelper.COLUMN_WAIST_CIRC,
                 DatabaseHelper.COLUMN_HIP_CIRC,
-                DatabaseHelper.COLUMN_WEIGHT
+                DatabaseHelper.COLUMN_WEIGHT,
+                DatabaseHelper.COLUMN_DATE
         };
         String selection = DatabaseHelper.COLUMN_PROFILE_USER_ID + "=?";
         String[] selectionArgs = {String.valueOf(userId)};
 
-        try (Cursor cursor = db.query(DatabaseHelper.TABLE_PROFILE, projection, selection, selectionArgs, null, null, null)) {
+        try (Cursor cursor = db.query(DatabaseHelper.TABLE_PROFILE, projection, selection, selectionArgs,
+                null, null, DatabaseHelper.COLUMN_DATE + " DESC", "1")) {
             if (cursor.moveToFirst()) {
-                // Retrieve gender
                 loadedGender = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GENDER));
-                if (loadedGender == null || loadedGender.isEmpty()){
-                    loadedGender = "Not specified"; // Default value if gender is not set
+                if (loadedGender == null || loadedGender.isEmpty()) {
+                    loadedGender = "Not specified";
                 }
 
                 float height = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_HEIGHT));
@@ -120,24 +118,25 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
                 float hipCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_HIP_CIRC));
                 float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WEIGHT));
 
-                // Populate EditText fields
-                heightEditText.setText(height > 0 ? String.format("%.1f", height) : "");
-                armCircEditText.setText(armCirc > 0 ? String.format("%.1f", armCirc) : "");
-                waistCircEditText.setText(waistCirc > 0 ? String.format("%.1f", waistCirc) : "");
-                hipCircEditText.setText(hipCirc > 0 ? String.format("%.1f", hipCirc) : "");
-                weightEditText.setText(weight > 0 ? String.format("%.1f", weight) : "");
+                heightEditText.setText(height > 0 ? String.format(Locale.US, "%.1f", height) : "");
+                armCircEditText.setText(armCirc > 0 ? String.format(Locale.US, "%.1f", armCirc) : "");
+                waistCircEditText.setText(waistCirc > 0 ? String.format(Locale.US, "%.1f", waistCirc) : "");
+                hipCircEditText.setText(hipCirc > 0 ? String.format(Locale.US, "%.1f", hipCirc) : "");
+                weightEditText.setText(weight > 0 ? String.format(Locale.US, "%.1f", weight) : "");
 
                 Log.d(TAG, "Loaded profile: gender=" + loadedGender + ", height=" + height + ", armCirc=" + armCirc +
                         ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
             } else {
                 Log.w(TAG, "No profile data found for userId: " + userId);
-                loadedGender = "Not specified"; // Default if no profile exists
+                loadedGender = "Not specified";
                 Toast.makeText(this, "Brak zapisanych danych. Wprowadź nowe pomiary.", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e(TAG, "Error loading profile data: " + e.getMessage(), e);
-            loadedGender = "Not specified"; // Default on error
-            Toast.makeText(this, "Błąd podczas ładowania danych", Toast.LENGTH_SHORT).show();
+            loadedGender = "Not specified";
+            Toast.makeText(this, "Błąd podczas ładowania danych: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        } finally {
+            db.close();
         }
     }
 
@@ -148,46 +147,44 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
         String hipCircStr = hipCircEditText.getText().toString().trim();
         String weightStr = weightEditText.getText().toString().trim();
 
-        if (heightStr.isEmpty() || armCircStr.isEmpty() || waistCircStr.isEmpty() ||
-                hipCircStr.isEmpty() || weightStr.isEmpty()) {
-            Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         float height, armCirc, waistCirc, hipCirc, weight;
+
         try {
-            height = Float.parseFloat(heightStr);
-            armCirc = Float.parseFloat(armCircStr);
-            waistCirc = Float.parseFloat(waistCircStr);
-            hipCirc = Float.parseFloat(hipCircStr);
-            weight = Float.parseFloat(weightStr);
-            if (height <= 0 || armCirc <= 0 || waistCirc <= 0 || hipCirc <= 0 || weight <= 0) {
-                Toast.makeText(this, "Wprowadź prawidłowe wartości (większe od 0)", Toast.LENGTH_SHORT).show();
+            height = heightStr.isEmpty() ? 0f : Float.parseFloat(heightStr);
+            armCirc = armCircStr.isEmpty() ? 0f : Float.parseFloat(armCircStr);
+            waistCirc = waistCircStr.isEmpty() ? 0f : Float.parseFloat(waistCircStr);
+            hipCirc = hipCircStr.isEmpty() ? 0f : Float.parseFloat(hipCircStr);
+            weight = weightStr.isEmpty() ? 0f : Float.parseFloat(weightStr);
+
+            if (height < 0 || armCirc < 0 || waistCirc < 0 || hipCirc < 0 || weight < 0) {
+                Toast.makeText(this, "Pomiary nie mogą być ujemne", Toast.LENGTH_SHORT).show();
                 return;
             }
-        } catch (NumberFormatException e) {
-            Toast.makeText(this, "Wprowadź prawidłowe liczby", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        // Ensure loadedGender has a value (it should from loadProfileData)
-        String genderToSave = (this.loadedGender != null && !this.loadedGender.isEmpty()) ? this.loadedGender : "Not specified";
+            if (weight == 0) {
+                Toast.makeText(this, "Waga jest wymagana", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        // Save profile
-        try {
-            // Pass the genderToSave to the saveProfile method
-            if (dbHelper.saveProfile(userId, genderToSave, height, armCirc, waistCirc, hipCirc, weight)) {
+            // Use updateProfile instead of saveProfile to update existing profile
+            boolean success = dbHelper.updateProfile(userId, loadedGender, height, armCirc, waistCirc, hipCirc, weight);
+
+            if (success) {
                 Toast.makeText(this, "Pomiary zapisane", Toast.LENGTH_SHORT).show();
-                Log.d(TAG, "Saved profile: gender=" + genderToSave + ", height=" + height + ", armCirc=" + armCirc +
+                Log.d(TAG, "Measurements updated: userId=" + userId + ", height=" + height + ", armCirc=" + armCirc +
                         ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
-                finish(); // Go back to the previous activity or a relevant screen
+                setResult(RESULT_OK);
+                finish();
             } else {
                 Toast.makeText(this, "Błąd podczas zapisywania pomiarów", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Failed to save profile");
+                Log.e(TAG, "Failed to update measurements for userId=" + userId);
             }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Nieprawidłowy format danych", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Invalid input format: " + e.getMessage(), e);
         } catch (Exception e) {
+            Toast.makeText(this, "Błąd podczas zapisywania danych", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "Error saving measurements: " + e.getMessage(), e);
-            Toast.makeText(this, "Błąd: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 }

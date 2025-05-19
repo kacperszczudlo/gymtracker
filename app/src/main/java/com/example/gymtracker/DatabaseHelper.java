@@ -7,13 +7,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.security.MessageDigest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GymTracker.db";
-    private static final int DATABASE_VERSION = 2; // Incremented to 2 for target_training_days
+    private static final int DATABASE_VERSION = 4;
 
     // Tabela użytkowników
     public static final String TABLE_USERS = "users";
@@ -32,12 +36,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_WAIST_CIRC = "waist_circumference";
     public static final String COLUMN_HIP_CIRC = "hip_circumference";
     public static final String COLUMN_WEIGHT = "weight";
+    public static final String COLUMN_DATE = "date";
 
     // Tabela celów użytkownika
     public static final String TABLE_USER_GOALS = "user_goals";
-    private static final String COLUMN_TARGET_WEIGHT = "target_weight";
-    private static final String COLUMN_START_WEIGHT = "start_weight";
-    private static final String COLUMN_TARGET_TRAINING_DAYS = "target_training_days";
+    public static final String COLUMN_TARGET_WEIGHT = "target_weight";
+    public static final String COLUMN_START_WEIGHT = "start_weight";
+    public static final String COLUMN_TARGET_TRAINING_DAYS = "target_training_days";
 
     // Tabela ćwiczeń
     public static final String TABLE_EXERCISES = "exercises";
@@ -61,7 +66,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // Tabele planów
     private static final String TABLE_TRAINING_PLAN = "training_plan";
     private static final String TABLE_PLAN_EXERCISE = "plan_exercise";
-
     private static final String COLUMN_PLAN_ID = "plan_id";
     private static final String COLUMN_PLAN_USER_ID = "user_id";
     private static final String COLUMN_PLAN_DAY_NAME = "day_name";
@@ -73,7 +77,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_TRAINING_LOG = "training_log";
     private static final String TABLE_LOG_EXERCISE = "log_exercise";
     private static final String TABLE_LOG_SERIES = "log_series";
-
     private static final String COLUMN_LOG_ID = "log_id";
     private static final String COLUMN_LOG_USER_ID = "user_id";
     private static final String COLUMN_LOG_DATE = "date";
@@ -89,7 +92,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Tworzenie tabeli użytkowników
         String createUsersTable = "CREATE TABLE " + TABLE_USERS + " (" +
                 COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_USERNAME + " TEXT, " +
@@ -98,7 +100,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_SURNAME + " TEXT)";
         db.execSQL(createUsersTable);
 
-        // Tworzenie tabeli profilu
         String createProfileTable = "CREATE TABLE " + TABLE_PROFILE + " (" +
                 COLUMN_PROFILE_USER_ID + " INTEGER, " +
                 COLUMN_GENDER + " TEXT, " +
@@ -107,10 +108,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_WAIST_CIRC + " REAL, " +
                 COLUMN_HIP_CIRC + " REAL, " +
                 COLUMN_WEIGHT + " REAL, " +
+                COLUMN_DATE + " TEXT, " +
                 "FOREIGN KEY(" + COLUMN_PROFILE_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))";
         db.execSQL(createProfileTable);
 
-        // Tworzenie tabeli celów użytkownika
         String createUserGoalsTable = "CREATE TABLE " + TABLE_USER_GOALS + " (" +
                 COLUMN_USER_ID + " INTEGER, " +
                 COLUMN_TARGET_WEIGHT + " REAL, " +
@@ -119,13 +120,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))";
         db.execSQL(createUserGoalsTable);
 
-        // Tworzenie tabeli ćwiczeń
         String createExercisesTable = "CREATE TABLE " + TABLE_EXERCISES + " (" +
                 COLUMN_EXERCISE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_EXERCISE_NAME + " TEXT)";
         db.execSQL(createExercisesTable);
 
-        // Tworzenie tabeli dni treningowych
         String createTrainingDaysTable = "CREATE TABLE " + TABLE_TRAINING_DAYS + " (" +
                 COLUMN_DAY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_DAY_NAME + " TEXT, " +
@@ -133,7 +132,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_DAY_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))";
         db.execSQL(createTrainingDaysTable);
 
-        // Tworzenie tabeli serii dla ćwiczeń
         String createDayExercisesTable = "CREATE TABLE " + TABLE_DAY_EXERCISES + " (" +
                 COLUMN_DAY_EXERCISE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_DAY_EXERCISE_DAY_ID + " INTEGER, " +
@@ -143,7 +141,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 "FOREIGN KEY(" + COLUMN_DAY_EXERCISE_DAY_ID + ") REFERENCES " + TABLE_TRAINING_DAYS + "(" + COLUMN_DAY_ID + "))";
         db.execSQL(createDayExercisesTable);
 
-        // Tabela planów treningowych
         db.execSQL("CREATE TABLE " + TABLE_TRAINING_PLAN + " (" +
                 COLUMN_PLAN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_PLAN_USER_ID + " INTEGER NOT NULL," +
@@ -157,7 +154,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_PLAN_SERIES_COUNT + " INTEGER NOT NULL," +
                 "FOREIGN KEY (" + COLUMN_PLAN_ID + ") REFERENCES " + TABLE_TRAINING_PLAN + "(" + COLUMN_PLAN_ID + "))");
 
-        // Tabela dziennika wykonanych treningów
         db.execSQL("CREATE TABLE " + TABLE_TRAINING_LOG + " (" +
                 COLUMN_LOG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_LOG_USER_ID + " INTEGER NOT NULL," +
@@ -178,16 +174,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_LOG_WEIGHT + " REAL," +
                 "FOREIGN KEY (" + COLUMN_LOG_EXERCISE_ID + ") REFERENCES " + TABLE_LOG_EXERCISE + "(" + COLUMN_LOG_EXERCISE_ID + "))");
 
-        // Dodanie domyślnego konta admin
         ContentValues adminValues = new ContentValues();
         adminValues.put(COLUMN_USERNAME, "admin");
-        adminValues.put(COLUMN_PASSWORD, "admin");
+        adminValues.put(COLUMN_PASSWORD, hashPassword("admin"));
         adminValues.put(COLUMN_EMAIL, "admin@example.com");
         adminValues.put(COLUMN_SURNAME, "Admin");
         db.insert(TABLE_USERS, null, adminValues);
 
-        // Dodanie przykładowych ćwiczeń
-        String[] exercises = {"Przysiady", "Wyciskanie sztangi", "Martwy ciąg", "Rumuński martwy ciąg", "Wyprosty na maszynie", "Łydkownica", "Rozpiętki", "Wyciskanie hantli", "Wyciskanie francuskie", "Prostowanie ramion", "Wznosy bokiem", "Wiosłowanie sztangą", "T-Bar", "Uginanie przedramion", "Młotki" };
+        String[] exercises = {"Przysiady", "Wyciskanie sztangi", "Martwy ciąg", "Rumuński martwy ciąg",
+                "Wyprosty na maszynie", "Łydkownica", "Rozpiętki", "Wyciskanie hantli",
+                "Wyciskanie francuskie", "Prostowanie ramion", "Wznosy bokiem",
+                "Wiosłowanie sztangą", "T-Bar", "Uginanie przedramion", "Młotki"};
         for (String exercise : exercises) {
             ContentValues exerciseValues = new ContentValues();
             exerciseValues.put(COLUMN_EXERCISE_NAME, exercise);
@@ -198,242 +195,232 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < 2) {
-            // Add target_training_days column to user_goals
             db.execSQL("ALTER TABLE " + TABLE_USER_GOALS + " ADD COLUMN " + COLUMN_TARGET_TRAINING_DAYS + " INTEGER");
         }
-        // Add future upgrades here
+        if (oldVersion < 3) {
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_PROFILE + " ADD COLUMN " + COLUMN_DATE + " TEXT");
+            } catch (Exception e) {
+                Log.e("DatabaseHelper", "Error adding date column (v3): " + e.getMessage(), e);
+            }
+        }
+        if (oldVersion < 4) {
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_PROFILE + " ADD COLUMN " + COLUMN_DATE + " TEXT");
+            } catch (Exception e) {
+                Log.e("DatabaseHelper", "Error adding date column (v4): " + e.getMessage(), e);
+            }
+        }
     }
 
-    // Metoda logowania
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public boolean checkUser(String username, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID},
-                COLUMN_USERNAME + "=? AND " + COLUMN_PASSWORD + "=?",
-                new String[]{username, password},
-                null, null, null);
-        int count = cursor.getCount();
-        cursor.close();
-        db.close();
-        return count > 0;
+        try {
+            Cursor cursor = db.query(TABLE_USERS,
+                    new String[]{COLUMN_USER_ID},
+                    COLUMN_USERNAME + "=? AND " + COLUMN_PASSWORD + "=?",
+                    new String[]{username, hashPassword(password)},
+                    null, null, null);
+            boolean exists = cursor.getCount() > 0;
+            cursor.close();
+            return exists;
+        } finally {
+            db.close();
+        }
     }
 
-    // Logowanie z emailem
     public boolean checkUserByEmail(String email, String password) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID},
-                COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?",
-                new String[]{email, password},
-                null, null, null);
-        int count = cursor.getCount();
-        cursor.close();
-        db.close();
-        return count > 0;
+        try {
+            Cursor cursor = db.query(TABLE_USERS,
+                    new String[]{COLUMN_USER_ID},
+                    COLUMN_EMAIL + "=? AND " + COLUMN_PASSWORD + "=?",
+                    new String[]{email, hashPassword(password)},
+                    null, null, null);
+            boolean exists = cursor.getCount() > 0;
+            cursor.close();
+            return exists;
+        } finally {
+            db.close();
+        }
     }
 
-    // Rejestracja użytkownika
     public boolean registerUser(String username, String password, String email, String surname) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_USERNAME, username);
-        values.put(COLUMN_PASSWORD, password);
-        values.put(COLUMN_EMAIL, email);
-        values.put(COLUMN_SURNAME, surname);
-        long result = db.insert(TABLE_USERS, null, values);
-        db.close();
-        return result != -1;
-    }
-
-    // Zapis profilu
-    public boolean saveProfile(int userId, String gender, float height, float armCirc, float waistCirc, float hipCirc, float weight) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_PROFILE_USER_ID, userId);
-        values.put(COLUMN_GENDER, gender);
-        values.put(COLUMN_HEIGHT, height);
-        values.put(COLUMN_ARM_CIRC, armCirc);
-        values.put(COLUMN_WAIST_CIRC, waistCirc);
-        values.put(COLUMN_HIP_CIRC, hipCirc);
-        values.put(COLUMN_WEIGHT, weight);
-
-        Cursor cursor = db.query(TABLE_PROFILE, new String[]{COLUMN_PROFILE_USER_ID}, COLUMN_PROFILE_USER_ID + "=?",
-                new String[]{String.valueOf(userId)}, null, null, null);
-        long result;
-        if (cursor.getCount() > 0) {
-            result = db.update(TABLE_PROFILE, values, COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)});
-        } else {
-            result = db.insert(TABLE_PROFILE, null, values);
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_USERNAME, username);
+            values.put(COLUMN_PASSWORD, hashPassword(password));
+            values.put(COLUMN_EMAIL, email);
+            values.put(COLUMN_SURNAME, surname);
+            long result = db.insert(TABLE_USERS, null, values);
+            return result != -1;
+        } finally {
+            db.close();
         }
-        cursor.close();
-        db.close();
-        return result != -1 && result != 0;
     }
 
-    // Pobieranie celów użytkownika
     public Cursor getUserGoals(int userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_USER_GOALS, new String[]{"target_weight", "start_weight", COLUMN_TARGET_TRAINING_DAYS},
                 COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
     }
 
-    // Zapis celów użytkownika
-    public boolean saveUserGoals(int userId, ContentValues values, SQLiteDatabase db) {
-        db.delete(TABLE_USER_GOALS, COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)});
-        long result = db.insert(TABLE_USER_GOALS, null, values);
-        return result != -1;
-    }
-
-    // Liczenie aktywnych dni treningowych
-    public int getActiveTrainingDaysCount(int userId) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        int count = 0;
-        try {
-            Cursor daysCursor = db.query(TABLE_TRAINING_DAYS, new String[]{COLUMN_DAY_ID},
-                    COLUMN_DAY_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
-            while (daysCursor.moveToNext()) {
-                long dayId = daysCursor.getLong(daysCursor.getColumnIndexOrThrow(COLUMN_DAY_ID));
-                Cursor exercisesCursor = db.query(TABLE_DAY_EXERCISES, new String[]{COLUMN_DAY_EXERCISE_ID},
-                        COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)}, null, null, null);
-                if (exercisesCursor.getCount() > 0) {
-                    count++;
-                }
-                exercisesCursor.close();
-            }
-            daysCursor.close();
-        } catch (Exception e) {
-            Log.e("DatabaseHelper", "Error counting active training days: " + e.getMessage(), e);
-        } finally {
-            db.close();
-        }
-        return count;
-    }
-
-    // Pobieranie ćwiczeń
     public Cursor getExercises() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.query(TABLE_EXERCISES, new String[]{COLUMN_EXERCISE_ID, COLUMN_EXERCISE_NAME},
                 null, null, null, null, null);
     }
 
-    // Zapis dni treningowych
     public long saveTrainingDay(int userId, String dayName) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_DAY_USER_ID, userId);
-        values.put(COLUMN_DAY_NAME, dayName);
-        long result = db.insert(TABLE_TRAINING_DAYS, null, values);
-        db.close();
-        return result;
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_DAY_USER_ID, userId);
+            values.put(COLUMN_DAY_NAME, dayName);
+            return db.insert(TABLE_TRAINING_DAYS, null, values);
+        } finally {
+            db.close();
+        }
     }
 
-    // Pobieranie ID dnia na podstawie nazwy i ID użytkownika
     public long getTrainingDayId(int userId, String dayName) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_TRAINING_DAYS,
-                new String[]{COLUMN_DAY_ID},
-                COLUMN_DAY_USER_ID + "=? AND " + COLUMN_DAY_NAME + "=?",
-                new String[]{String.valueOf(userId), dayName},
-                null, null, null);
-        long dayId = -1;
-        if (cursor.moveToFirst()) {
-            dayId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_DAY_ID));
+        try {
+            Cursor cursor = db.query(TABLE_TRAINING_DAYS,
+                    new String[]{COLUMN_DAY_ID},
+                    COLUMN_DAY_USER_ID + "=? AND " + COLUMN_DAY_NAME + "=?",
+                    new String[]{String.valueOf(userId), dayName},
+                    null, null, null);
+            long dayId = -1;
+            if (cursor.moveToFirst()) {
+                dayId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_DAY_ID));
+            }
+            cursor.close();
+            return dayId;
+        } finally {
+            db.close();
         }
-        cursor.close();
-        db.close();
-        return dayId;
     }
 
-    // Zapis serii dla ćwiczenia w danym dniu
     public boolean saveDayExercise(long dayId, Exercise exercise) {
         SQLiteDatabase db = this.getWritableDatabase();
-        boolean success = true;
-        for (Series series : exercise.getSeriesList()) {
-            ContentValues values = new ContentValues();
-            values.put(COLUMN_DAY_EXERCISE_DAY_ID, dayId);
-            values.put(COLUMN_DAY_EXERCISE_NAME, exercise.getName());
-            values.put(COLUMN_DAY_EXERCISE_REPS, series.getReps());
-            values.put(COLUMN_DAY_EXERCISE_WEIGHT, series.getWeight());
-            if (db.insert(TABLE_DAY_EXERCISES, null, values) == -1) {
-                success = false;
+        try {
+            boolean success = true;
+            for (Series series : exercise.getSeriesList()) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_DAY_EXERCISE_DAY_ID, dayId);
+                values.put(COLUMN_DAY_EXERCISE_NAME, exercise.getName());
+                values.put(COLUMN_DAY_EXERCISE_REPS, series.getReps());
+                values.put(COLUMN_DAY_EXERCISE_WEIGHT, series.getWeight());
+                if (db.insert(TABLE_DAY_EXERCISES, null, values) == -1) {
+                    success = false;
+                }
             }
+            return success;
+        } finally {
+            db.close();
         }
-        db.close();
-        return success;
     }
 
-    // Pobieranie ćwiczeń z seriami dla danego dnia
     public ArrayList<Exercise> getDayExercises(long dayId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        ArrayList<Exercise> exerciseList = new ArrayList<>();
-        Cursor cursor = db.query(TABLE_DAY_EXERCISES,
-                new String[]{COLUMN_DAY_EXERCISE_NAME, COLUMN_DAY_EXERCISE_REPS, COLUMN_DAY_EXERCISE_WEIGHT},
-                COLUMN_DAY_EXERCISE_DAY_ID + "=?",
-                new String[]{String.valueOf(dayId)},
-                null, null, COLUMN_DAY_EXERCISE_NAME);
+        try {
+            ArrayList<Exercise> exerciseList = new ArrayList<>();
+            Cursor cursor = db.query(TABLE_DAY_EXERCISES,
+                    new String[]{COLUMN_DAY_EXERCISE_NAME, COLUMN_DAY_EXERCISE_REPS, COLUMN_DAY_EXERCISE_WEIGHT},
+                    COLUMN_DAY_EXERCISE_DAY_ID + "=?",
+                    new String[]{String.valueOf(dayId)},
+                    null, null, COLUMN_DAY_EXERCISE_NAME);
 
-        String currentExerciseName = null;
-        ArrayList<Series> seriesList = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            String exerciseName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_NAME));
-            int reps = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_REPS));
-            float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_WEIGHT));
+            String currentExerciseName = null;
+            ArrayList<Series> seriesList = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                String exerciseName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_NAME));
+                int reps = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_REPS));
+                float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_WEIGHT));
 
-            if (currentExerciseName != null && !exerciseName.equals(currentExerciseName)) {
-                exerciseList.add(new Exercise(currentExerciseName, new ArrayList<>(seriesList)));
-                seriesList.clear();
+                if (currentExerciseName != null && !exerciseName.equals(currentExerciseName)) {
+                    exerciseList.add(new Exercise(currentExerciseName, new ArrayList<>(seriesList)));
+                    seriesList.clear();
+                }
+                seriesList.add(new Series(reps, weight));
+                currentExerciseName = exerciseName;
             }
-            seriesList.add(new Series(reps, weight));
-            currentExerciseName = exerciseName;
+            if (currentExerciseName != null && !seriesList.isEmpty()) {
+                exerciseList.add(new Exercise(currentExerciseName, seriesList));
+            }
+            cursor.close();
+            return exerciseList;
+        } finally {
+            db.close();
         }
-        if (currentExerciseName != null && !seriesList.isEmpty()) {
-            exerciseList.add(new Exercise(currentExerciseName, seriesList));
-        }
-        cursor.close();
-        db.close();
-        return exerciseList;
     }
 
-    // Usuwanie serii dla ćwiczenia w danym dniu
     public boolean deleteDayExercise(long dayId, String exerciseName, int seriesIndex) {
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.query(TABLE_DAY_EXERCISES,
-                new String[]{COLUMN_DAY_EXERCISE_ID},
-                COLUMN_DAY_EXERCISE_DAY_ID + "=? AND " + COLUMN_DAY_EXERCISE_NAME + "=?",
-                new String[]{String.valueOf(dayId), exerciseName},
-                null, null, null);
+        try {
+            Cursor cursor = db.query(TABLE_DAY_EXERCISES,
+                    new String[]{COLUMN_DAY_EXERCISE_ID},
+                    COLUMN_DAY_EXERCISE_DAY_ID + "=? AND " + COLUMN_DAY_EXERCISE_NAME + "=?",
+                    new String[]{String.valueOf(dayId), exerciseName},
+                    null, null, null);
 
-        int count = 0;
-        if (cursor.moveToPosition(seriesIndex)) {
-            long seriesIdToDelete = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_ID));
-            count = db.delete(TABLE_DAY_EXERCISES,
-                    COLUMN_DAY_EXERCISE_ID + "=?",
-                    new String[]{String.valueOf(seriesIdToDelete)});
+            int count = 0;
+            if (cursor.moveToPosition(seriesIndex)) {
+                long seriesIdToDelete = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_DAY_EXERCISE_ID));
+                count = db.delete(TABLE_DAY_EXERCISES,
+                        COLUMN_DAY_EXERCISE_ID + "=?",
+                        new String[]{String.valueOf(seriesIdToDelete)});
+            }
+            cursor.close();
+            return count > 0;
+        } finally {
+            db.close();
         }
-        cursor.close();
-        db.close();
-        return count > 0;
     }
 
-    // Usuwanie wszystkich serii dla danego dnia
     public boolean deleteDayExercises(long dayId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        int result = db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?", new String[]{String.valueOf(dayId)});
-        db.close();
-        return result > 0;
+        try {
+            int result = db.delete(TABLE_DAY_EXERCISES, COLUMN_DAY_EXERCISE_DAY_ID + "=?",
+                    new String[]{String.valueOf(dayId)});
+            return result > 0;
+        } finally {
+            db.close();
+        }
     }
 
     public boolean checkIfEmailExists(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_USERS,
-                new String[]{COLUMN_USER_ID},
-                COLUMN_EMAIL + "=?",
-                new String[]{email},
-                null, null, null);
-        boolean exists = cursor.getCount() > 0;
-        cursor.close();
-        db.close();
-        return exists;
+        try {
+            Cursor cursor = db.query(TABLE_USERS,
+                    new String[]{COLUMN_USER_ID},
+                    COLUMN_EMAIL + "=?",
+                    new String[]{email},
+                    null, null, null);
+            boolean exists = cursor.getCount() > 0;
+            cursor.close();
+            return exists;
+        } finally {
+            db.close();
+        }
     }
 
     public long saveTrainingPlan(int userId, String dayName, List<Exercise> exerciseList) {
@@ -460,8 +447,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             planValues.put(COLUMN_PLAN_DAY_NAME, dayName);
             planId = db.insert(TABLE_TRAINING_PLAN, null, planValues);
 
-            Log.d("DEBUG_PLAN", "insert -> planId=" + planId
-                    + ", userId=" + userId + ", day=" + dayName);
+            Log.d("DEBUG_PLAN", "insert -> planId=" + planId + ", userId=" + userId + ", day=" + dayName);
 
             if (planId != -1) {
                 for (Exercise ex : exerciseList) {
@@ -473,14 +459,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         planId = -1;
                         break;
                     }
-                    Log.d("DEBUG_PLAN", "  + exercise '" + ex.getName()
-                            + "' (series=" + ex.getSeriesList().size() + ")");
+                    Log.d("DEBUG_PLAN", "  + exercise '" + ex.getName() + "' (series=" + ex.getSeriesList().size() + ")");
                 }
             }
 
             if (planId != -1) {
                 db.delete(TABLE_TRAINING_LOG,
-                        COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=date('now','localtime') AND " + COLUMN_LOG_DAY_NAME + "=?",
+                        COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=date('now','localtime') AND " +
+                                COLUMN_LOG_DAY_NAME + "=?",
                         new String[]{String.valueOf(userId), dayName});
                 db.setTransactionSuccessful();
             }
@@ -496,14 +482,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public boolean trainingLogExists(int userId, String date, String dayName) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
-                COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
-                new String[]{String.valueOf(userId), date, dayName},
-                null, null, null);
-        boolean exists = cursor.moveToFirst();
-        cursor.close();
-        db.close();
-        return exists;
+        try {
+            Cursor cursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
+                    COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
+                    new String[]{String.valueOf(userId), date, dayName},
+                    null, null, null);
+            boolean exists = cursor.moveToFirst();
+            cursor.close();
+            return exists;
+        } finally {
+            db.close();
+        }
     }
 
     public boolean createEmptyTrainingLogFromPlan(int userId, String dayName, String date) {
@@ -578,44 +567,46 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ArrayList<Exercise> list = new ArrayList<>();
         long logId = -1;
 
-        Cursor logCursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
-                COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
-                new String[]{String.valueOf(userId), date, dayName}, null, null, null);
+        try {
+            Cursor logCursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
+                    COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
+                    new String[]{String.valueOf(userId), date, dayName}, null, null, null);
 
-        if (logCursor.moveToFirst()) {
-            logId = logCursor.getLong(logCursor.getColumnIndexOrThrow(COLUMN_LOG_ID));
-        }
-        logCursor.close();
-
-        if (logId == -1) {
-            db.close();
-            return list;
-        }
-
-        Cursor exCursor = db.query(TABLE_LOG_EXERCISE,
-                new String[]{COLUMN_LOG_EXERCISE_ID, COLUMN_PLAN_EXERCISE_NAME},
-                COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)}, null, null, null);
-
-        while (exCursor.moveToNext()) {
-            long logExerciseId = exCursor.getLong(exCursor.getColumnIndexOrThrow(COLUMN_LOG_EXERCISE_ID));
-            String name = exCursor.getString(exCursor.getColumnIndexOrThrow(COLUMN_PLAN_EXERCISE_NAME));
-            ArrayList<Series> seriesList = new ArrayList<>();
-
-            Cursor sCursor = db.query(TABLE_LOG_SERIES,
-                    new String[]{COLUMN_LOG_REPS, COLUMN_LOG_WEIGHT},
-                    COLUMN_LOG_EXERCISE_ID + "=?", new String[]{String.valueOf(logExerciseId)},
-                    null, null, null);
-            while (sCursor.moveToNext()) {
-                int reps = sCursor.getInt(sCursor.getColumnIndexOrThrow(COLUMN_LOG_REPS));
-                float weight = sCursor.getFloat(sCursor.getColumnIndexOrThrow(COLUMN_LOG_WEIGHT));
-                seriesList.add(new Series(reps, weight));
+            if (logCursor.moveToFirst()) {
+                logId = logCursor.getLong(logCursor.getColumnIndexOrThrow(COLUMN_LOG_ID));
             }
-            sCursor.close();
-            list.add(new Exercise(name, seriesList));
+            logCursor.close();
+
+            if (logId == -1) {
+                return list;
+            }
+
+            Cursor exCursor = db.query(TABLE_LOG_EXERCISE,
+                    new String[]{COLUMN_LOG_EXERCISE_ID, COLUMN_PLAN_EXERCISE_NAME},
+                    COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)}, null, null, null);
+
+            while (exCursor.moveToNext()) {
+                long logExerciseId = exCursor.getLong(exCursor.getColumnIndexOrThrow(COLUMN_LOG_EXERCISE_ID));
+                String name = exCursor.getString(exCursor.getColumnIndexOrThrow(COLUMN_PLAN_EXERCISE_NAME));
+                ArrayList<Series> seriesList = new ArrayList<>();
+
+                Cursor sCursor = db.query(TABLE_LOG_SERIES,
+                        new String[]{COLUMN_LOG_REPS, COLUMN_LOG_WEIGHT},
+                        COLUMN_LOG_EXERCISE_ID + "=?", new String[]{String.valueOf(logExerciseId)},
+                        null, null, null);
+                while (sCursor.moveToNext()) {
+                    int reps = sCursor.getInt(sCursor.getColumnIndexOrThrow(COLUMN_LOG_REPS));
+                    float weight = sCursor.getFloat(sCursor.getColumnIndexOrThrow(COLUMN_LOG_WEIGHT));
+                    seriesList.add(new Series(reps, weight));
+                }
+                sCursor.close();
+                list.add(new Exercise(name, seriesList));
+            }
+            exCursor.close();
+            return list;
+        } finally {
+            db.close();
         }
-        exCursor.close();
-        db.close();
-        return list;
     }
 
     public boolean saveLogSeries(int userId, String date, String dayName, List<Exercise> exercises) {
@@ -644,9 +635,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             c.close();
 
-            HashSet<String> newNames = new HashSet<>();
-            for (Exercise ex : exercises) newNames.add(ex.getName());
-
             Cursor exCur = db.query(TABLE_LOG_EXERCISE,
                     new String[]{COLUMN_LOG_EXERCISE_ID, COLUMN_PLAN_EXERCISE_NAME},
                     COLUMN_LOG_ID + "=?",
@@ -656,41 +644,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             List<Long> exercisesToDelete = new ArrayList<>();
             while (exCur.moveToNext()) {
                 long currentLogExerciseId = exCur.getLong(exCur.getColumnIndexOrThrow(COLUMN_LOG_EXERCISE_ID));
-                String name = exCur.getString(exCur.getColumnIndexOrThrow(COLUMN_PLAN_EXERCISE_NAME));
-
-                if (!newNames.contains(name)) {
-                    exercisesToDelete.add(currentLogExerciseId);
-                }
+                exercisesToDelete.add(currentLogExerciseId);
             }
             exCur.close();
 
-            for (Long logExerciseIdToDelete : exercisesToDelete) {
+            for (Long logExerciseId : exercisesToDelete) {
                 db.delete(TABLE_LOG_SERIES, COLUMN_LOG_EXERCISE_ID + "=?",
-                        new String[]{String.valueOf(logExerciseIdToDelete)});
+                        new String[]{String.valueOf(logExerciseId)});
                 db.delete(TABLE_LOG_EXERCISE, COLUMN_LOG_EXERCISE_ID + "=?",
-                        new String[]{String.valueOf(logExerciseIdToDelete)});
+                        new String[]{String.valueOf(logExerciseId)});
             }
 
             for (Exercise ex : exercises) {
-                Cursor find = db.query(TABLE_LOG_EXERCISE, new String[]{COLUMN_LOG_EXERCISE_ID},
-                        COLUMN_LOG_ID + "=? AND " + COLUMN_PLAN_EXERCISE_NAME + "=?",
-                        new String[]{String.valueOf(logId), ex.getName()},
-                        null, null, null);
-
-                long logExerciseId;
-                if (find.moveToFirst()) {
-                    logExerciseId = find.getLong(find.getColumnIndexOrThrow(COLUMN_LOG_EXERCISE_ID));
-                    db.delete(TABLE_LOG_SERIES, COLUMN_LOG_EXERCISE_ID + "=?",
-                            new String[]{String.valueOf(logExerciseId)});
-                } else {
-                    ContentValues ev = new ContentValues();
-                    ev.put(COLUMN_LOG_ID, logId);
-                    ev.put(COLUMN_PLAN_EXERCISE_NAME, ex.getName());
-                    logExerciseId = db.insert(TABLE_LOG_EXERCISE, null, ev);
+                ContentValues ev = new ContentValues();
+                ev.put(COLUMN_LOG_ID, logId);
+                ev.put(COLUMN_PLAN_EXERCISE_NAME, ex.getName());
+                long logExerciseId = db.insert(TABLE_LOG_EXERCISE, null, ev);
+                if (logExerciseId == -1) {
+                    return false;
                 }
-                find.close();
-
-                if (logExerciseId == -1) return false;
 
                 for (Series s : ex.getSeriesList()) {
                     ContentValues sv = new ContentValues();
@@ -716,16 +688,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long getLogId(int userId, String date, String dayName) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
-                COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
-                new String[]{String.valueOf(userId), date, dayName}, null, null, null);
-        long logId = -1;
-        if (cursor.moveToFirst()) {
-            logId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LOG_ID));
+        try {
+            Cursor cursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_ID},
+                    COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=? AND " + COLUMN_LOG_DAY_NAME + "=?",
+                    new String[]{String.valueOf(userId), date, dayName}, null, null, null);
+            long logId = -1;
+            if (cursor.moveToFirst()) {
+                logId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LOG_ID));
+            }
+            cursor.close();
+            return logId;
+        } finally {
+            db.close();
         }
-        cursor.close();
-        db.close();
-        return logId;
     }
 
     public void deleteLogExercise(long logId, String exerciseName) {
@@ -738,8 +713,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             if (cursor.moveToFirst()) {
                 long logExerciseId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_LOG_EXERCISE_ID));
-                db.delete(TABLE_LOG_SERIES, COLUMN_LOG_EXERCISE_ID + "=?", new String[]{String.valueOf(logExerciseId)});
-                db.delete(TABLE_LOG_EXERCISE, COLUMN_LOG_EXERCISE_ID + "=?", new String[]{String.valueOf(logExerciseId)});
+                db.delete(TABLE_LOG_SERIES, COLUMN_LOG_EXERCISE_ID + "=?",
+                        new String[]{String.valueOf(logExerciseId)});
+                db.delete(TABLE_LOG_EXERCISE, COLUMN_LOG_EXERCISE_ID + "=?",
+                        new String[]{String.valueOf(logExerciseId)});
             }
             cursor.close();
             if (countExercisesInLog(logId) == 0) {
@@ -756,33 +733,414 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public long createEmptyTrainingLog(int userId, String dayName, String date) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues logVals = new ContentValues();
-        logVals.put(COLUMN_LOG_USER_ID, userId);
-        logVals.put(COLUMN_LOG_DATE, date);
-        logVals.put(COLUMN_LOG_DAY_NAME, dayName);
-        long result = db.insert(TABLE_TRAINING_LOG, null, logVals);
-        db.close();
-        return result;
+        try {
+            ContentValues logVals = new ContentValues();
+            logVals.put(COLUMN_LOG_USER_ID, userId);
+            logVals.put(COLUMN_LOG_DATE, date);
+            logVals.put(COLUMN_LOG_DAY_NAME, dayName);
+            long result = db.insert(TABLE_TRAINING_LOG, null, logVals);
+            return result;
+        } finally {
+            db.close();
+        }
     }
 
     private int countExercisesInLog(long logId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery(
-                "SELECT COUNT(*) FROM " + TABLE_LOG_EXERCISE + " WHERE " + COLUMN_LOG_ID + "=?",
-                new String[]{String.valueOf(logId)});
-        int cnt = 0;
-        if (c.moveToFirst()) {
-            cnt = c.getInt(0);
+        try {
+            Cursor c = db.rawQuery(
+                    "SELECT COUNT(*) FROM " + TABLE_LOG_EXERCISE + " WHERE " + COLUMN_LOG_ID + "=?",
+                    new String[]{String.valueOf(logId)});
+            int cnt = 0;
+            if (c.moveToFirst()) {
+                cnt = c.getInt(0);
+            }
+            c.close();
+            return cnt;
+        } finally {
+            db.close();
         }
-        c.close();
-        return cnt;
     }
 
     public void deleteEmptyLogIfNeeded(long logId) {
         SQLiteDatabase db = getWritableDatabase();
-        if (countExercisesInLog(logId) == 0) {
-            db.delete(TABLE_TRAINING_LOG, COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)});
+        try {
+            if (countExercisesInLog(logId) == 0) {
+                db.delete(TABLE_TRAINING_LOG, COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)});
+            }
+        } finally {
+            db.close();
         }
-        db.close();
+    }
+
+    public String getUsername(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            String username = null;
+            Cursor cursor = db.query(TABLE_USERS, new String[]{COLUMN_USERNAME},
+                    COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                username = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USERNAME));
+            }
+            cursor.close();
+            return username;
+        } finally {
+            db.close();
+        }
+    }
+
+    public float[] getInitialProfileData(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            float[] data = new float[]{0f, 0f};
+            Cursor cursor = db.query(TABLE_PROFILE, new String[]{COLUMN_WEIGHT, COLUMN_ARM_CIRC},
+                    COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)},
+                    null, null, "IFNULL(" + COLUMN_DATE + ", '1970-01-01') ASC", "1");
+            if (cursor.moveToFirst()) {
+                data[0] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WEIGHT));
+                data[1] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ARM_CIRC));
+                Log.d("DatabaseHelper", "Initial Weight for user " + userId + ": " + data[0]);
+            } else {
+                Log.d("DatabaseHelper", "No initial profile entry for user " + userId);
+            }
+            cursor.close();
+            return data;
+        } finally {
+            db.close();
+        }
+    }
+
+    public float getLatestBenchPress(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            float maxWeight = 0f;
+            String query = "SELECT MAX(" + COLUMN_LOG_WEIGHT + ") as max_weight " +
+                    "FROM " + TABLE_LOG_SERIES + " ls " +
+                    "JOIN " + TABLE_LOG_EXERCISE + " le ON ls." + COLUMN_LOG_EXERCISE_ID + " = le." + COLUMN_LOG_EXERCISE_ID + " " +
+                    "JOIN " + TABLE_TRAINING_LOG + " tl ON le." + COLUMN_LOG_ID + " = tl." + COLUMN_LOG_ID + " " +
+                    "WHERE tl." + COLUMN_LOG_USER_ID + " = ? AND le." + COLUMN_PLAN_EXERCISE_NAME + " = ?";
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), "Wyciskanie sztangi"});
+            if (cursor.moveToFirst()) {
+                maxWeight = cursor.getFloat(cursor.getColumnIndexOrThrow("max_weight"));
+                Log.d("DatabaseHelper", "Latest Bench Press for user " + userId + ": " + maxWeight);
+            } else {
+                Log.d("DatabaseHelper", "No bench press logs for user " + userId);
+            }
+            cursor.close();
+            return maxWeight;
+        } finally {
+            db.close();
+        }
+    }
+
+    public float getInitialBenchPress(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            float firstWeight = 0f;
+            String query = "SELECT ls." + COLUMN_LOG_WEIGHT + " as weight " +
+                    "FROM " + TABLE_LOG_SERIES + " ls " +
+                    "JOIN " + TABLE_LOG_EXERCISE + " le ON ls." + COLUMN_LOG_EXERCISE_ID + " = le." + COLUMN_LOG_EXERCISE_ID + " " +
+                    "JOIN " + TABLE_TRAINING_LOG + " tl ON le." + COLUMN_LOG_ID + " = tl." + COLUMN_LOG_ID + " " +
+                    "WHERE tl." + COLUMN_LOG_USER_ID + " = ? AND le." + COLUMN_PLAN_EXERCISE_NAME + " = ? " +
+                    "ORDER BY tl." + COLUMN_LOG_DATE + " ASC LIMIT 1";
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), "Wyciskanie sztangi"});
+            if (cursor.moveToFirst()) {
+                firstWeight = cursor.getFloat(cursor.getColumnIndexOrThrow("weight"));
+                Log.d("DatabaseHelper", "Initial Bench Press for user " + userId + ": " + firstWeight);
+            } else {
+                Log.d("DatabaseHelper", "No initial bench press log for user " + userId);
+            }
+            cursor.close();
+            return firstWeight;
+        } finally {
+            db.close();
+        }
+    }
+
+    public void debugDatabase(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            Cursor cursor = db.query(TABLE_USER_GOALS, null, COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
+            Log.d("DatabaseHelper", "user_goals entries for user " + userId + ": " + cursor.getCount());
+            while (cursor.moveToNext()) {
+                Log.d("DatabaseHelper", "user_goals: start_weight=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_START_WEIGHT)) +
+                        ", target_weight=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_TARGET_WEIGHT)) +
+                        ", target_training_days=" + cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_TARGET_TRAINING_DAYS)));
+            }
+            cursor.close();
+
+            cursor = db.query(TABLE_PROFILE, null, COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
+            Log.d("DatabaseHelper", "profile entries for user " + userId + ": " + cursor.getCount());
+            while (cursor.moveToNext()) {
+                Log.d("DatabaseHelper", "profile: weight=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WEIGHT)) +
+                        ", arm_circ=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ARM_CIRC)) +
+                        ", waist_circ=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WAIST_CIRC)) +
+                        ", hip_circ=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HIP_CIRC)) +
+                        ", height=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HEIGHT)) +
+                        ", date=" + cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+            }
+            cursor.close();
+
+            String query = "SELECT tl." + COLUMN_LOG_DATE + ", ls." + COLUMN_LOG_WEIGHT +
+                    " FROM " + TABLE_LOG_SERIES + " ls " +
+                    "JOIN " + TABLE_LOG_EXERCISE + " le ON ls." + COLUMN_LOG_EXERCISE_ID + " = le." + COLUMN_LOG_EXERCISE_ID + " " +
+                    "JOIN " + TABLE_TRAINING_LOG + " tl ON le." + COLUMN_LOG_ID + " = tl." + COLUMN_LOG_ID + " " +
+                    "WHERE tl." + COLUMN_LOG_USER_ID + " = ? AND le." + COLUMN_PLAN_EXERCISE_NAME + " = ?";
+            cursor = db.rawQuery(query, new String[]{String.valueOf(userId), "Wyciskanie sztangi"});
+            Log.d("DatabaseHelper", "bench press entries for user " + userId + ": " + cursor.getCount());
+            while (cursor.moveToNext()) {
+                Log.d("DatabaseHelper", "bench press: date=" + cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LOG_DATE)) +
+                        ", weight=" + cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_LOG_WEIGHT)));
+            }
+            cursor.close();
+
+            cursor = db.query(TABLE_TRAINING_LOG, new String[]{COLUMN_LOG_DATE},
+                    COLUMN_LOG_USER_ID + "=?", new String[]{String.valueOf(userId)}, null, null, null);
+            Log.d("DatabaseHelper", "training_log entries for user " + userId + ": " + cursor.getCount());
+            while (cursor.moveToNext()) {
+                Log.d("DatabaseHelper", "training_log: date=" + cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LOG_DATE)));
+            }
+            cursor.close();
+        } finally {
+            db.close();
+        }
+    }
+
+    public boolean saveProfile(int userId, String gender, float height, float armCirc, float waistCirc, float hipCirc, float weight) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_PROFILE_USER_ID, userId);
+            values.put(COLUMN_GENDER, gender);
+            values.put(COLUMN_HEIGHT, height);
+            values.put(COLUMN_ARM_CIRC, armCirc);
+            values.put(COLUMN_WAIST_CIRC, waistCirc);
+            values.put(COLUMN_HIP_CIRC, hipCirc);
+            values.put(COLUMN_WEIGHT, weight);
+            values.put(COLUMN_DATE, new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
+
+            long result = db.insert(TABLE_PROFILE, null, values);
+            if (result == -1) {
+                Log.e("DB_ERROR", "Failed to insert profile: userId=" + userId + ", height=" + height +
+                        ", armCirc=" + armCirc + ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
+                return false;
+            }
+            Log.d("DB_PROFILE", "Inserted profile: userId=" + userId + ", height=" + height +
+                    ", armCirc=" + armCirc + ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
+            db.setTransactionSuccessful();
+            return true;
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Error inserting profile: " + e.getMessage(), e);
+            return false;
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
+    // New method to update existing profile data
+    public boolean updateProfile(int userId, String gender, float height, float armCirc, float waistCirc, float hipCirc, float weight) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_GENDER, gender);
+            values.put(COLUMN_HEIGHT, height);
+            values.put(COLUMN_ARM_CIRC, armCirc);
+            values.put(COLUMN_WAIST_CIRC, waistCirc);
+            values.put(COLUMN_HIP_CIRC, hipCirc);
+            values.put(COLUMN_WEIGHT, weight);
+            values.put(COLUMN_DATE, new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date()));
+
+            // Check if a profile exists for the user
+            Cursor cursor = db.query(TABLE_PROFILE, new String[]{COLUMN_PROFILE_USER_ID},
+                    COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)},
+                    null, null, null);
+            boolean profileExists = cursor.getCount() > 0;
+            cursor.close();
+
+            int result;
+            if (profileExists) {
+                // Update existing profile
+                result = db.update(TABLE_PROFILE, values,
+                        COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)});
+            } else {
+                // Insert new profile if none exists
+                values.put(COLUMN_PROFILE_USER_ID, userId);
+                result = (int) db.insert(TABLE_PROFILE, null, values);
+            }
+
+            if (result == -1 || (profileExists && result == 0)) {
+                Log.e("DB_ERROR", "Failed to update profile: userId=" + userId + ", height=" + height +
+                        ", armCirc=" + armCirc + ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
+                return false;
+            }
+            Log.d("DB_PROFILE", "Updated profile: userId=" + userId + ", height=" + height +
+                    ", armCirc=" + armCirc + ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
+            db.setTransactionSuccessful();
+            return true;
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Error updating profile: " + e.getMessage(), e);
+            return false;
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
+    public boolean saveUserGoals(int userId, ContentValues values, SQLiteDatabase db) {
+        try {
+            db.delete(TABLE_USER_GOALS, COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)});
+            values.put(COLUMN_USER_ID, userId);
+            long result = db.insert(TABLE_USER_GOALS, null, values);
+            if (result == -1) {
+                Log.e("DB_ERROR", "Failed to save user goals for userId=" + userId);
+                return false;
+            }
+            Log.d("DatabaseHelper", "Saved user goals: userId=" + userId + ", values=" + values.toString());
+            return true;
+        } catch (Exception e) {
+            Log.e("DB_ERROR", "Error saving user goals: " + e.getMessage(), e);
+            return false;
+        }
+    }
+
+    public float[] getLatestProfileData(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        float[] data = new float[]{0f, 0f, 0f, 0f, 0f};
+        try {
+            Cursor cursor = db.query(TABLE_PROFILE,
+                    new String[]{COLUMN_WEIGHT, COLUMN_ARM_CIRC, COLUMN_WAIST_CIRC, COLUMN_HIP_CIRC, COLUMN_HEIGHT, COLUMN_DATE},
+                    COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)},
+                    null, null, COLUMN_DATE + " DESC", "1");
+            if (cursor.moveToFirst()) {
+                data[0] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WEIGHT));
+                data[1] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ARM_CIRC));
+                data[2] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WAIST_CIRC));
+                data[3] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HIP_CIRC));
+                data[4] = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HEIGHT));
+                String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
+                Log.d("DatabaseHelper", "Latest Profile for user " + userId + ": weight=" + data[0] +
+                        ", arm=" + data[1] + ", waist=" + data[2] + ", hip=" + data[3] + ", height=" + data[4] + ", date=" + date);
+            } else {
+                Log.d("DatabaseHelper", "No latest profile entry for user " + userId);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error fetching latest profile data: " + e.getMessage(), e);
+        } finally {
+            db.close();
+        }
+        return data;
+    }
+
+    public int getActiveTrainingDaysCount(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+        try {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setFirstDayOfWeek(Calendar.MONDAY);
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+            String startDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+            calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+            String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
+
+            Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT " + COLUMN_LOG_DATE + ") as count " +
+                            "FROM " + TABLE_TRAINING_LOG + " WHERE " + COLUMN_LOG_USER_ID + "=?" +
+                            " AND " + COLUMN_LOG_DATE + " BETWEEN ? AND ?",
+                    new String[]{String.valueOf(userId), startDate, endDate});
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
+            }
+            cursor.close();
+            Log.d("DatabaseHelper", "Active training days for user " + userId + " in week " + startDate + " to " + endDate + ": " + count);
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error counting active training days: " + e.getMessage(), e);
+        } finally {
+            db.close();
+        }
+        return count;
+    }
+
+    public void clearTestData(int userId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(TABLE_PROFILE, COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)});
+            db.delete(TABLE_USER_GOALS, COLUMN_USER_ID + "=?", new String[]{String.valueOf(userId)});
+            db.delete(TABLE_TRAINING_LOG, COLUMN_LOG_USER_ID + "=?", new String[]{String.valueOf(userId)});
+            db.setTransactionSuccessful();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error clearing test data: " + e.getMessage());
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
+    public void debugProfileTableSchema() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            Cursor cursor = db.rawQuery("PRAGMA table_info(" + TABLE_PROFILE + ")", null);
+            Log.d("DatabaseHelper", "Profile table schema:");
+            while (cursor.moveToNext()) {
+                String columnName = cursor.getString(cursor.getColumnIndexOrThrow("name"));
+                String columnType = cursor.getString(cursor.getColumnIndexOrThrow("type"));
+                Log.d("DatabaseHelper", "Column: " + columnName + ", Type: " + columnType);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error checking profile schema: " + e.getMessage(), e);
+        } finally {
+            db.close();
+        }
+    }
+
+    public void getProfileEntries(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            Cursor cursor = db.query(TABLE_PROFILE,
+                    new String[]{COLUMN_WEIGHT, COLUMN_ARM_CIRC, COLUMN_WAIST_CIRC, COLUMN_HIP_CIRC, COLUMN_HEIGHT, COLUMN_DATE},
+                    COLUMN_PROFILE_USER_ID + "=?", new String[]{String.valueOf(userId)},
+                    null, null, COLUMN_DATE + " DESC");
+            Log.d("DatabaseHelper", "Profile entries for user " + userId + ": " + cursor.getCount());
+            while (cursor.moveToNext()) {
+                float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WEIGHT));
+                float armCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_ARM_CIRC));
+                float waistCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_WAIST_CIRC));
+                float hipCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HIP_CIRC));
+                float height = cursor.getFloat(cursor.getColumnIndexOrThrow(COLUMN_HEIGHT));
+                String date = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
+                Log.d("DatabaseHelper", "Profile entry: date=" + date + ", weight=" + weight +
+                        ", armCirc=" + armCirc + ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", height=" + height);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error fetching profile entries: " + e.getMessage(), e);
+        } finally {
+            db.close();
+        }
+    }
+
+    public int getTargetTrainingDaysFromPlan(int userId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        int count = 0;
+        try {
+            Cursor cursor = db.rawQuery(
+                    "SELECT COUNT(DISTINCT " + COLUMN_PLAN_DAY_NAME + ") as count " +
+                            "FROM " + TABLE_TRAINING_PLAN + " WHERE " + COLUMN_PLAN_USER_ID + "=?",
+                    new String[]{String.valueOf(userId)});
+            if (cursor.moveToFirst()) {
+                count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
+            }
+            cursor.close();
+            Log.d("DatabaseHelper", "Target training days from plan for user " + userId + ": " + count);
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error counting target training days: " + e.getMessage(), e);
+        } finally {
+            db.close();
+        }
+        return count;
     }
 }

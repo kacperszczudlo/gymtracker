@@ -28,7 +28,6 @@ public class TrainingMainActivity extends AppCompatActivity {
     private DatabaseHelper dbHelper;
     private int userId;
 
-    // Elementy kalendarza i daty
     private RecyclerView weekDaysRecyclerView;
     private WeekDaysAdapter weekDaysAdapter;
     private String selectedDayName;
@@ -40,12 +39,11 @@ public class TrainingMainActivity extends AppCompatActivity {
     private SimpleDateFormat dateFormatForDb;
     private String currentSelectedDateString;
 
-    // Timer
     private TextView timerTextView;
     private Button timerToggleButton;
     private CountDownTimer timer;
     private boolean isRunning = false;
-    private long timeLeftInMillis = 60 * 1000; // 1 minuta
+    private long timeLeftInMillis = 60 * 1000;
     private final long startTimeInMillis = 60 * 1000;
 
     private static final int REQUEST_CODE_EDIT_EXERCISES = 2;
@@ -62,7 +60,6 @@ public class TrainingMainActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = prefs.getInt("user_id", -1);
 
-        // Inicjalizacja formatów daty
         dateFormatForTextView = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         dateFormatForDb = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
@@ -78,10 +75,8 @@ public class TrainingMainActivity extends AppCompatActivity {
             return;
         }
 
-        // Inicjalizacja RecyclerView dla ćwiczeń - W TRYBIE TYLKO DO ODCZYTU
         exerciseRecyclerView = findViewById(R.id.exerciseRecyclerView);
         exerciseList = new ArrayList<>();
-        // **Zmiana**: Usunięto 'this' z wywołania konstruktora
         exerciseAdapter = new ExerciseAdapter(exerciseList, null, false);
         exerciseRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         exerciseRecyclerView.setAdapter(exerciseAdapter);
@@ -92,13 +87,9 @@ public class TrainingMainActivity extends AppCompatActivity {
             }
         });
 
-        // Inicjalizacja timera
         initRestTimer();
-
-        // Inicjalizacja nawigacji datą
         initDateNavigation();
 
-        // Inicjalizacja RecyclerView dla dni tygodnia
         weekDaysRecyclerView = findViewById(R.id.weekDaysRecyclerView);
         weekDaysAdapter = new WeekDaysAdapter(dayName -> {
             this.selectedDayName = dayName;
@@ -112,10 +103,8 @@ public class TrainingMainActivity extends AppCompatActivity {
         weekDaysRecyclerView.setLayoutManager(weekDaysLayoutManager);
         weekDaysRecyclerView.setAdapter(weekDaysAdapter);
 
-        // Ustawienie początkowego dnia i załadowanie danych
         setInitialDayAndView();
 
-        // Przycisk "Edytuj trening"
         Button editButton = findViewById(R.id.editButton);
         editButton.setOnClickListener(v -> {
             if (selectedDayName == null || selectedDayName.isEmpty()) {
@@ -132,7 +121,6 @@ public class TrainingMainActivity extends AppCompatActivity {
             startActivityForResult(intent, REQUEST_CODE_EDIT_EXERCISES);
         });
 
-        // Przyciski nawigacji dolnej
         ImageButton menuButton = findViewById(R.id.menuButton);
         ImageButton profileButton = findViewById(R.id.profileButton);
         ImageButton homeButton = findViewById(R.id.homeButton);
@@ -141,7 +129,6 @@ public class TrainingMainActivity extends AppCompatActivity {
         if (profileButton != null) profileButton.setOnClickListener(v -> startActivity(new Intent(this, UserProfileActivity.class)));
         if (homeButton != null) homeButton.setOnClickListener(v -> Toast.makeText(this, "Jesteś już na stronie głównej", Toast.LENGTH_SHORT).show());
 
-        // Przycisk "Zapisz trening"
         Button saveButton = findViewById(R.id.saveTrainingButton);
         saveButton.setOnClickListener(v -> {
             if (selectedDayName == null || selectedDayName.isEmpty()) {
@@ -157,7 +144,8 @@ public class TrainingMainActivity extends AppCompatActivity {
     private void initializeDayNameMapping() {
         dayNameToCalendarField = new HashMap<>();
         String[] fullDayNamesFromAdapter = WeekDaysAdapter.FULL_DAYS;
-        int[] calendarFields = {Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY, Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY};
+        int[] calendarFields = {Calendar.MONDAY, Calendar.TUESDAY, Calendar.WEDNESDAY, Calendar.THURSDAY,
+                Calendar.FRIDAY, Calendar.SATURDAY, Calendar.SUNDAY};
         for (int i = 0; i < fullDayNamesFromAdapter.length; i++) {
             dayNameToCalendarField.put(fullDayNamesFromAdapter[i], calendarFields[i]);
         }
@@ -272,7 +260,9 @@ public class TrainingMainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE_EDIT_EXERCISES && resultCode == RESULT_OK) {
             if (selectedDayName != null) {
                 Log.d("TrainingMain", "Powrót z edycji, odświeżanie dla: " + selectedDayName + " na dacie " + currentSelectedDateString);
+                exerciseList.clear();
                 loadExercisesForDay(selectedDayName);
+                exerciseAdapter.notifyDataSetChanged();
             }
         }
     }

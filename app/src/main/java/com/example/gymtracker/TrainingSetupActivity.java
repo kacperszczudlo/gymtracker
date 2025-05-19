@@ -13,14 +13,12 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import java.util.ArrayList;
 
 public class TrainingSetupActivity extends AppCompatActivity {
-
     private RecyclerView recyclerView;
     private ExerciseAdapter adapter;
     private ArrayList<Exercise> exerciseList;
@@ -28,16 +26,15 @@ public class TrainingSetupActivity extends AppCompatActivity {
     private String dayName;
     private long dayId;
     private int userId;
-    private boolean isLogEdit;      //  🔑
-    private String logDate;         //  🔑
-
+    private boolean isLogEdit;
+    private String logDate;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_training_setup);
-        isLogEdit = "LOG".equals(getIntent().getStringExtra("MODE"));
-        logDate   = getIntent().getStringExtra("DATE"); // może być null dla planu
+        isLogEdit = "EDIT_LOG_ENTRIES".equals(getIntent().getStringExtra("MODE"));
+        logDate = getIntent().getStringExtra("DATE");
 
         dbHelper = new DatabaseHelper(this);
         recyclerView = findViewById(R.id.exerciseRecyclerView);
@@ -49,14 +46,14 @@ public class TrainingSetupActivity extends AppCompatActivity {
         userId = prefs.getInt("user_id", -1);
 
         dayName = getIntent().getStringExtra("DAY_NAME");
-        dayId = getIntent().getLongExtra("DAY_ID", -1); // ✔️ zachowujemy
+        dayId = getIntent().getLongExtra("DAY_ID", -1);
         trainingTitle.setText("Trening - " + dayName);
 
         exerciseList = new ArrayList<>();
         if (getIntent().hasExtra("EXERCISE_LIST")) {
             exerciseList = getIntent().getParcelableArrayListExtra("EXERCISE_LIST");
         } else {
-            loadExercisesForDay(); // ✔️ zachowujemy jako fallback
+            loadExercisesForDay();
         }
 
         adapter = new ExerciseAdapter(exerciseList, this::removeExercise, true);
@@ -66,27 +63,25 @@ public class TrainingSetupActivity extends AppCompatActivity {
         addExerciseButton.setOnClickListener(v -> showExerciseDialog());
 
         nextButton.setOnClickListener(v -> {
-
-            if (isLogEdit) {                               // 🔧 tryb edycji dziennika
-                boolean ok = dbHelper.saveLogSeries(
-                        userId, logDate, dayName, exerciseList);
+            Log.d("DEBUG_SAVE", "Saving exercises: " + exerciseList.size());
+            for (Exercise ex : exerciseList) {
+                Log.d("DEBUG_SAVE", "Exercise: " + ex.getName() + ", Series: " + ex.getSeriesList().size());
+                for (Series s : ex.getSeriesList()) {
+                    Log.d("DEBUG_SAVE", "  Series - Reps: " + s.getReps() + ", Weight: " + s.getWeight());
+                }
+            }
+            if (isLogEdit) {
+                boolean ok = dbHelper.saveLogSeries(userId, logDate, dayName, exerciseList);
                 Log.d("DEBUG_PLAN", "saveLogSeries -> " + ok);
-
-            } else {                                       // 🔧 tryb “buduję szablon”
-                long planId = dbHelper.saveTrainingPlan(
-                        userId, dayName, exerciseList);
+            } else {
+                long planId = dbHelper.saveTrainingPlan(userId, dayName, exerciseList);
                 Log.d("DEBUG_PLAN", "saveTrainingPlan planId=" + planId);
             }
-
-            // powrót do ekranu głównego
-            Intent intent = new Intent(
-                    TrainingSetupActivity.this, TrainingMainActivity.class);
+            Intent intent = new Intent(TrainingSetupActivity.this, TrainingMainActivity.class);
             startActivity(intent);
             setResult(RESULT_OK);
             finish();
         });
-
-
     }
 
     private void showExerciseDialog() {
@@ -120,29 +115,21 @@ public class TrainingSetupActivity extends AppCompatActivity {
 
         dialog.show();
 
-        // Rozszerzenie na 100% wysokości
         View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
         if (bottomSheet != null) {
-
             BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             bottomSheet.setLayoutParams(bottomSheet.getLayoutParams());
         }
     }
 
-
     private void loadExercisesForDay() {
-        if (isLogEdit) {                               // 🔧 edytujemy LOG z dzisiejszego treningu
-            exerciseList.addAll(
-                    dbHelper.getLogExercises(userId, logDate, dayName)
-            );
-        } else {                                       // klasyczny szablon-plan
-            exerciseList.addAll(
-                    dbHelper.getDayExercises(dayId)
-            );
+        if (isLogEdit) {
+            exerciseList.addAll(dbHelper.getLogExercises(userId, logDate, dayName));
+        } else {
+            exerciseList.addAll(dbHelper.getDayExercises(dayId));
         }
     }
-
 
     private void removeExercise(int position) {
         exerciseList.remove(position);
