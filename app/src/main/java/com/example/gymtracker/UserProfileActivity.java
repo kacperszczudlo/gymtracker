@@ -53,14 +53,14 @@ public class UserProfileActivity extends AppCompatActivity {
             // TODO: Implement achievements activity
         });
         binding.accountSettingsButton.setOnClickListener(v -> {
-            Intent intent = new Intent(this, AccountSettingsActivity.class);
+            Intent intent = new Intent(this, UpdateUserDataActivity.class);
             startActivityForResult(intent, REQUEST_CODE_SETTINGS);
         });
         binding.logoutButton.setOnClickListener(v -> {
             SharedPreferences.Editor editor = prefs.edit();
             editor.clear();
             editor.apply();
-            startActivity(new Intent(this, LoginActivity.class));
+            startActivity(new Intent(this, MainActivity.class));
             finish();
         });
 
@@ -113,20 +113,8 @@ public class UserProfileActivity extends AppCompatActivity {
         Log.d("UserProfileActivity", "Initial Bench: " + initialBenchPress + ", Latest Bench: " + latestBenchPress + ", Bench Progress: " + benchPressProgress);
 
         // Weight
-        if (initialWeight == 0 || latestData[0] == 0) {
-            binding.progressWeightTextView.setText("Brak danych");
-        } else {
-            String weightText = String.format(Locale.US, "%.1f kg", latestData[0]);
-            String progressText = String.format(Locale.US, " (%s%.1f kg)", weightProgress >= 0 ? "+" : "-", Math.abs(weightProgress));
-            SpannableString spannableWeight = new SpannableString(weightText + progressText);
-            int start = weightText.length();
-            int end = (weightText + progressText).length();
-            spannableWeight.setSpan(
-                    new ForegroundColorSpan(getResources().getColor(weightProgress >= 0 ? R.color.green : R.color.red, getTheme())),
-                    start, end, SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            binding.progressWeightTextView.setText(spannableWeight);
-        }
+
+
 
         // Arm Circumference (from history)
         List<DatabaseHelper.BodyStatEntry> history = dbHelper.getBodyStatHistory(userId);
@@ -150,6 +138,34 @@ public class UserProfileActivity extends AppCompatActivity {
             binding.progressArmCircTextView.setText(String.format(Locale.US, "%.1f cm", arm));
         } else {
             binding.progressArmCircTextView.setText("Brak danych");
+        }
+
+
+        // Weight progress (based on history table)
+        if (history.size() >= 2) {
+            float firstWeight = history.get(0).weight;
+            float lastWeight = history.get(history.size() - 1).weight;
+            float weightDelta = lastWeight - firstWeight;
+
+            String weightText = String.format(Locale.US, "%.1f kg", lastWeight);
+            String progressText = String.format(Locale.US, " (%s%.1f kg)", weightDelta >= 0 ? "+" : "-", Math.abs(weightDelta));
+            SpannableString spannableWeight = new SpannableString(weightText + progressText);
+            int start = weightText.length();
+            int end = (weightText + progressText).length();
+            spannableWeight.setSpan(
+                    new ForegroundColorSpan(getResources().getColor(weightDelta >= 0 ? R.color.green : R.color.red, getTheme())),
+                    start, end,
+                    SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            binding.progressWeightTextView.setText(spannableWeight);
+            Log.d("UserProfileActivity", "History weight progress: " + weightDelta);
+        } else if (history.size() == 1) {
+            float weight = history.get(0).weight;
+            binding.progressWeightTextView.setText(String.format(Locale.US, "%.1f kg", weight));
+            Log.d("UserProfileActivity", "Only one weight entry: " + weight);
+        } else {
+            binding.progressWeightTextView.setText("Brak danych");
+            Log.d("UserProfileActivity", "No weight history data");
         }
 
         // Bench Press
