@@ -1143,4 +1143,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return count;
     }
+    public float getBestLoggedWeightForExercise(int userId, String exerciseName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        float maxWeight = 0f;
+        try {
+            String query = "SELECT MAX(" + COLUMN_LOG_WEIGHT + ") as max_weight " +
+                    "FROM " + TABLE_LOG_SERIES + " ls " +
+                    "JOIN " + TABLE_LOG_EXERCISE + " le ON ls." + COLUMN_LOG_EXERCISE_ID + " = le." + COLUMN_LOG_EXERCISE_ID + " " +
+                    "JOIN " + TABLE_TRAINING_LOG + " tl ON le." + COLUMN_LOG_ID + " = tl." + COLUMN_LOG_ID + " " +
+                    "WHERE tl." + COLUMN_LOG_USER_ID + " = ? AND le." + COLUMN_PLAN_EXERCISE_NAME + " = ?";
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), exerciseName});
+            if (cursor.moveToFirst()) {
+                maxWeight = cursor.getFloat(cursor.getColumnIndexOrThrow("max_weight"));
+                Log.d("DatabaseHelper", "Max weight for " + exerciseName + " (user " + userId + "): " + maxWeight);
+            } else {
+                Log.d("DatabaseHelper", "No logs found for " + exerciseName + " and user " + userId);
+            }
+            cursor.close();
+        } catch (Exception e) {
+            Log.e("DatabaseHelper", "Error fetching best weight for " + exerciseName + ": " + e.getMessage());
+        } finally {
+            db.close();
+        }
+        return maxWeight;
+    }
 }

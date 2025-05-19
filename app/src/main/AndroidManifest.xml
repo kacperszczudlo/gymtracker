@@ -71,6 +71,9 @@
         <activity
             android:name=".TrainingGoalsActivity"
             android:exported="true" />
+        <activity
+            android:name=".AchievementsActivity"
+            android:exported="true" />
 
     </application>
 

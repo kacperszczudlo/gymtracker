@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
+import android.widget.Button;
+
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.gymtracker.databinding.ActivityUserProfileBinding;
 
@@ -75,6 +77,12 @@ public class UserProfileActivity extends AppCompatActivity {
         });
         binding.profileButton.setOnClickListener(v -> {
             // Already on profile
+        });
+        // Inside onCreate, after initializing other views
+        Button achievementsButton = findViewById(R.id.achievementsButton);
+        achievementsButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UserProfileActivity.this, AchievementsActivity.class);
+            startActivity(intent);
         });
     }
 
