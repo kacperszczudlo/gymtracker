@@ -16,7 +16,7 @@ public class AchievementsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_achievments);
+        setContentView(R.layout.activity_achievements);
 
         dbHelper = new DatabaseHelper(this);
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
@@ -33,10 +33,10 @@ public class AchievementsActivity extends AppCompatActivity {
         TextView squatsTextView = findViewById(R.id.squatsTextView);
         TextView deadliftTextView = findViewById(R.id.deadliftTextView);
 
-        // Fetch best results
-        float benchPressMax = dbHelper.getBestWeightForExercise(userId, "Wyciskanie sztangi"); // Adjusted to match your exercise name
-        float squatsMax = dbHelper.getBestWeightForExercise(userId, "Przysiady");
-        float deadliftMax = dbHelper.getBestWeightForExercise(userId, "Martwy ciąg");
+        // Fetch best results from logs
+        float benchPressMax = dbHelper.getBestLoggedWeightForExercise(userId, "Wyciskanie sztangi");
+        float squatsMax = dbHelper.getBestLoggedWeightForExercise(userId, "Przysiady");
+        float deadliftMax = dbHelper.getBestLoggedWeightForExercise(userId, "Martwy ciąg");
 
         // Display results
         benchPressTextView.setText(benchPressMax > 0 ? String.format("%.1f kg", benchPressMax) : "Brak danych");
