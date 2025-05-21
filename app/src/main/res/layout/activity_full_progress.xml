@@ -52,7 +52,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:contentDescription="Weight Icon"
-                        android:src="@drawable/ic_weight"
+                        android:src="@drawable/ic_arm"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         app:tint="#4CAF50" />
@@ -148,7 +148,7 @@
                         android:layout_height="24dp"
                         android:layout_marginTop="12dp"
                         android:contentDescription="Bench Press Icon"
-                        android:src="@drawable/ic_bench"
+                        android:src="@drawable/ic_arm"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/separator2"
                         app:tint="#4CAF50" />
