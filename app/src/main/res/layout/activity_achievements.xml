@@ -7,13 +7,17 @@
     android:padding="16dp"
     android:background="#212121">
 
+    <!-- Username -->
     <TextView
+        android:id="@+id/usernameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="16dp"
         android:text="Osiągnięcia"
         android:textSize="24sp"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="16dp"/>
+        android:textColor="#FFFFFF" />
+
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -33,7 +37,7 @@
                 android:id="@+id/benchPressIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_arm"
+                android:src="@drawable/ic_bench"
                 android:contentDescription="Wyciskanie na ławie - ikona"
                 app:tint="#4CAF50"
                 app:layout_constraintStart_toStartOf="parent"
@@ -81,7 +85,7 @@
                 android:id="@+id/squatsIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_arm"
+                android:src="@drawable/ic_bench"
                 android:contentDescription="Przysiady - ikona"
                 app:tint="#4CAF50"
                 android:layout_marginTop="12dp"
@@ -129,7 +133,7 @@
                 android:id="@+id/deadliftIcon"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:src="@drawable/ic_arm"
+                android:src="@drawable/ic_bench"
                 android:contentDescription="Martwy ciąg - ikona"
                 app:tint="#4CAF50"
                 android:layout_marginTop="12dp"
