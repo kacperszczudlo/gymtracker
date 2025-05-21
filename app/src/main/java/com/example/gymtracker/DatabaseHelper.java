@@ -661,8 +661,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             }
             c.close();
 
+            // Usuń istniejące ćwiczenia dla tego logu
             Cursor exCur = db.query(TABLE_LOG_EXERCISE,
-                    new String[]{COLUMN_LOG_EXERCISE_ID, COLUMN_PLAN_EXERCISE_NAME},
+                    new String[]{COLUMN_LOG_EXERCISE_ID},
                     COLUMN_LOG_ID + "=?",
                     new String[]{String.valueOf(logId)},
                     null, null, null);
@@ -681,6 +682,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         new String[]{String.valueOf(logExerciseId)});
             }
 
+            // Jeśli lista ćwiczeń jest pusta, usuń wpis z training_log i zakończ
+            if (exercises == null || exercises.isEmpty()) {
+                db.delete(TABLE_TRAINING_LOG, COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)});
+                db.setTransactionSuccessful();
+                success = true;
+                return success;
+            }
+
+            // Dodaj nowe ćwiczenia
             for (Exercise ex : exercises) {
                 ContentValues ev = new ContentValues();
                 ev.put(COLUMN_LOG_ID, logId);
@@ -700,6 +710,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
             }
+
             db.setTransactionSuccessful();
             success = true;
         } catch (Exception e) {
