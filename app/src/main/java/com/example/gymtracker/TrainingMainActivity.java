@@ -135,6 +135,16 @@ public class TrainingMainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Wybierz dzień treningowy.", Toast.LENGTH_SHORT).show();
                 return;
             }
+            // Sprawdź, czy log istnieje, jeśli nie, utwórz go
+            boolean logExists = dbHelper.trainingLogExists(userId, currentSelectedDateString, selectedDayName);
+            if (!logExists) {
+                boolean createdFromPlan = dbHelper.createEmptyTrainingLogFromPlan(userId, selectedDayName, currentSelectedDateString);
+                if (!createdFromPlan) {
+                    long id = dbHelper.createEmptyTrainingLog(userId, selectedDayName, currentSelectedDateString);
+                    Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log (" + currentSelectedDateString + ", " + selectedDayName + "), id=" + id);
+                }
+            }
+            // Zapisz dane
             boolean success = dbHelper.saveLogSeries(userId, currentSelectedDateString, selectedDayName, exerciseList);
             String message = success ? "Trening zapisany pomyślnie!" : "Błąd zapisu treningu!";
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
@@ -231,17 +241,7 @@ public class TrainingMainActivity extends AppCompatActivity {
         exerciseList.clear();
         Log.d("DEBUG_LOG", "Ładowanie dla dnia: " + dayName + ", Data dla bazy: " + currentSelectedDateString);
 
-        boolean logExists = dbHelper.trainingLogExists(userId, currentSelectedDateString, dayName);
-        Log.d("DEBUG_LOG", "Czy log (" + currentSelectedDateString + ", " + dayName + ") istnieje: " + logExists);
-
-        if (!logExists) {
-            boolean createdFromPlan = dbHelper.createEmptyTrainingLogFromPlan(userId, dayName, currentSelectedDateString);
-            if (!createdFromPlan) {
-                long id = dbHelper.createEmptyTrainingLog(userId, dayName, currentSelectedDateString);
-                Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log (" + currentSelectedDateString + ", " + dayName + "), id=" + id);
-            }
-        }
-
+        // Ładuj tylko istniejące ćwiczenia z logu, bez automatycznego tworzenia
         exerciseList.addAll(dbHelper.getLogExercises(userId, currentSelectedDateString, dayName));
         Log.d("DEBUG_LOG", "Załadowano ćwiczeń: " + exerciseList.size() + " dla " + currentSelectedDateString + " (" + dayName + ")");
 
