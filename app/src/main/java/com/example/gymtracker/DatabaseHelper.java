@@ -1074,10 +1074,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
             String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
 
-            Cursor cursor = db.rawQuery("SELECT COUNT(DISTINCT " + COLUMN_LOG_DATE + ") as count " +
-                            "FROM " + TABLE_TRAINING_LOG + " WHERE " + COLUMN_LOG_USER_ID + "=?" +
-                            " AND " + COLUMN_LOG_DATE + " BETWEEN ? AND ?",
-                    new String[]{String.valueOf(userId), startDate, endDate});
+            String query = "SELECT COUNT(DISTINCT tl." + COLUMN_LOG_DATE + ") as count " +
+                    "FROM " + TABLE_TRAINING_LOG + " tl " +
+                    "JOIN " + TABLE_LOG_EXERCISE + " le ON tl." + COLUMN_LOG_ID + " = le." + COLUMN_LOG_ID + " " +
+                    "WHERE tl." + COLUMN_LOG_USER_ID + "=? " +
+                    "AND tl." + COLUMN_LOG_DATE + " BETWEEN ? AND ?";
+            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), startDate, endDate});
             if (cursor.moveToFirst()) {
                 count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
             }
