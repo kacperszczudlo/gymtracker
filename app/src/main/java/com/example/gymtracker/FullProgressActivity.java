@@ -2,6 +2,7 @@ package com.example.gymtracker;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
@@ -57,6 +58,11 @@ public class FullProgressActivity extends AppCompatActivity {
         waistCircTextView = findViewById(R.id.waistCircTextView);
         hipCircTextView = findViewById(R.id.hipCircTextView);
         weightChart = findViewById(R.id.weightChart);
+
+        setupExerciseChart(findViewById(R.id.benchChart), "Wyciskanie sztangi");
+        setupExerciseChart(findViewById(R.id.squatChart), "Przysiady");
+        setupExerciseChart(findViewById(R.id.deadliftChart), "Martwy ciąg");
+
 
         // Dane i wykresy
         showLatestMeasurements();
@@ -116,6 +122,54 @@ public class FullProgressActivity extends AppCompatActivity {
             hipCircTextView.setText("Obwód bioder: Brak danych");
         }
     }
+
+    private void setupExerciseChart(LineChart chart, String exerciseName) {
+        List<Entry> entries = databaseHelper.getExerciseProgressEntries(userId, exerciseName);
+
+        if (entries.isEmpty()) {
+            chart.setNoDataText("Brak danych");
+            chart.setNoDataTextColor(getResources().getColor(android.R.color.white, getTheme()));
+            return;
+        }
+
+        LineDataSet dataSet = new LineDataSet(entries, exerciseName);
+        dataSet.setColor(getResources().getColor(R.color.green, getTheme()));
+        dataSet.setLineWidth(2f);
+        dataSet.setCircleRadius(3f);
+        dataSet.setDrawCircles(true);
+        dataSet.setDrawValues(false);
+
+        LineData lineData = new LineData(dataSet);
+        chart.setData(lineData);
+
+        XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setDrawGridLines(false);
+        xAxis.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+        xAxis.setTextSize(14f);
+        xAxis.setGranularity(1f);
+        xAxis.setLabelCount(entries.size());
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(float value, AxisBase axis) {
+                int index = (int) value;
+                return String.valueOf(index + 1);
+            }
+        });
+
+        YAxis leftAxis = chart.getAxisLeft();
+        leftAxis.setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+        leftAxis.setTextSize(14f);
+
+        YAxis rightAxis = chart.getAxisRight();
+        rightAxis.setEnabled(false);
+
+        chart.getDescription().setEnabled(false);
+        chart.getLegend().setTextColor(getResources().getColor(android.R.color.white, getTheme()));
+        chart.invalidate();
+    }
+
+
 
     private SpannableString createSpannableWithProgress(String label, float value, float diff, String unit) {
         String baseText = String.format(Locale.US, "%s%.1f %s", label, value, unit);

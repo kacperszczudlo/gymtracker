@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.github.mikephil.charting.data.Entry;
+
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -1262,6 +1264,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return maxWeight;
     }
+
+    public List<Entry> getExerciseProgressEntries(int userId, String exerciseName) {
+        List<Entry> entries = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String query = "SELECT tl." + COLUMN_LOG_DATE + " AS date, MAX(ls." + COLUMN_LOG_WEIGHT + ") as max_weight " +
+                "FROM " + TABLE_LOG_SERIES + " ls " +
+                "JOIN " + TABLE_LOG_EXERCISE + " le ON ls." + COLUMN_LOG_EXERCISE_ID + " = le." + COLUMN_LOG_EXERCISE_ID + " " +
+                "JOIN " + TABLE_TRAINING_LOG + " tl ON le." + COLUMN_LOG_ID + " = tl." + COLUMN_LOG_ID + " " +
+                "WHERE tl." + COLUMN_LOG_USER_ID + " = ? AND le." + COLUMN_PLAN_EXERCISE_NAME + " = ? AND ls." + COLUMN_LOG_WEIGHT + " > 0 " +
+                "GROUP BY tl." + COLUMN_LOG_DATE + " ORDER BY tl." + COLUMN_LOG_DATE + " ASC";
+
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), exerciseName});
+        int index = 0;
+
+        if (cursor.moveToFirst()) {
+            do {
+                float weight = cursor.getFloat(cursor.getColumnIndexOrThrow("max_weight"));
+                entries.add(new Entry(index, weight));
+                index++;
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return entries;
+    }
+
+
+
 
 
 
