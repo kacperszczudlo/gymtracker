@@ -17,7 +17,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GymTracker.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 1;
 
     // Tabela użytkowników
     public static final String TABLE_USERS = "users";
@@ -64,11 +64,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_DAY_EXERCISE_WEIGHT = "weight";
 
     // Tabele planów
-    private static final String TABLE_TRAINING_PLAN = "training_plan";
+    public static final String TABLE_TRAINING_PLAN = "training_plan";
+    public static final String COLUMN_PLAN_ID = "plan_id";
+    public static final String COLUMN_PLAN_USER_ID = "user_id";
+    public static final String COLUMN_PLAN_DAY_NAME = "day_name";
     private static final String TABLE_PLAN_EXERCISE = "plan_exercise";
-    private static final String COLUMN_PLAN_ID = "plan_id";
-    private static final String COLUMN_PLAN_USER_ID = "user_id";
-    private static final String COLUMN_PLAN_DAY_NAME = "day_name";
     private static final String COLUMN_PLAN_EXERCISE_ID = "plan_exercise_id";
     private static final String COLUMN_PLAN_EXERCISE_NAME = "exercise_name";
     private static final String COLUMN_PLAN_SERIES_COUNT = "series_count";
@@ -1277,6 +1277,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return maxWeight;
     }
 
+    public boolean trainingPlanExists(long userId, String dayName) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(
+                TABLE_TRAINING_PLAN,
+                new String[]{COLUMN_PLAN_ID},
+                COLUMN_PLAN_USER_ID + "=? AND " + COLUMN_PLAN_DAY_NAME + "=?",
+                new String[]{String.valueOf(userId), dayName},
+                null, null, null
+        );
+        boolean exists = cursor.moveToFirst();
+        cursor.close();
+        return exists;
+    }
 
 
 
