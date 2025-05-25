@@ -16,6 +16,8 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
     private final boolean isEditable;
     private final OnSeriesRemoveListener onSeriesRemoveListener;
     private final long dayId; // Nowe pole!
+    private final boolean isEditableSeriesFields; // 🔴 Nowe pole!
+
 
     public interface OnItemClickListener {
         void onItemClick(int position);
@@ -29,12 +31,14 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
                            OnItemClickListener listener,
                            boolean isEditable,
                            OnSeriesRemoveListener onSeriesRemoveListener,
-                           long dayId) {
+                           long dayId,
+                           boolean isEditableSeriesFields) { // 🔴 Dodaj parametr
         this.exerciseList = exerciseList;
         this.listener = listener;
         this.isEditable = isEditable;
         this.onSeriesRemoveListener = onSeriesRemoveListener;
         this.dayId = dayId;
+        this.isEditableSeriesFields = isEditableSeriesFields; // 🔴 Zapamiętaj go
     }
 
     @NonNull
@@ -52,7 +56,7 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
 
         SeriesAdapter seriesAdapter = new SeriesAdapter(
                 exercise.getSeriesList(),
-                isEditable,
+                isEditableSeriesFields, // 🔴 Przekazujemy info o edytowalności pól w seriach
                 seriesPosition -> {
                     exercise.removeSeries(seriesPosition);
                     notifyItemChanged(position);

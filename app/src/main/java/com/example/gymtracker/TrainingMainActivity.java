@@ -82,12 +82,12 @@ public class TrainingMainActivity extends AppCompatActivity {
                 null,
                 false,
                 (dayId, exerciseName, seriesPosition) -> {
-                    // Tutaj nie trzeba nic robić – w TrainingMainActivity nie musimy usuwać z DB!
-                    // Możesz zostawić puste ciało albo dodać log, np.:
                     Log.d("TrainingMain", "Usunięto serię: " + exerciseName + " (pozycja: " + seriesPosition + ")");
                 },
-                -1L // dayId: w TrainingMainActivity nie edytujemy planu, więc daj -1
+                -1L,
+                false // 🔴 NOWY ARGUMENT – pola w SeriesAdapter NIE SĄ EDYTOWALNE
         );
+
 
         exerciseRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         exerciseRecyclerView.setAdapter(exerciseAdapter);

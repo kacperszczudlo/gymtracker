@@ -44,6 +44,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
         Button addExerciseButton = findViewById(R.id.addExerciseButton);
         Button nextButton = findViewById(R.id.nextButton);
         TextView trainingTitle = findViewById(R.id.trainingTitleTextView);
+        boolean isEditableSeriesFields = isLogEdit;
 
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userId = prefs.getInt("user_id", -1);
@@ -62,7 +63,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
         adapter = new ExerciseAdapter(
                 exerciseList,
                 this::removeExercise,
-                true,
+                true, // 🔴 Pozostawiamy możliwość dodawania/usuwania ćwiczeń w TrainingSetupActivity
                 (dayId, exerciseName, seriesPosition) -> {
                     if (dayId != -1) {
                         DatabaseHelper dbHelper = new DatabaseHelper(this);
@@ -70,7 +71,8 @@ public class TrainingSetupActivity extends AppCompatActivity {
                         Log.d("TrainingSetupActivity", "Usunięto serię: " + exerciseName + " (pozycja: " + seriesPosition + ")");
                     }
                 },
-                dayId
+                dayId,
+                isEditableSeriesFields // 🔴 Tu przekazujemy czy pola w seriach mają być edytowalne!
         );
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

@@ -58,12 +58,12 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
                     if (dayId != -1) {
                         DatabaseHelper dbHelper = new DatabaseHelper(this);
                         dbHelper.deleteDayExercise(dayId, exerciseName, seriesPosition);
-                        // Opcjonalnie log:
-                        // Log.d("TrainingSetupRegister", "Usunięto serię " + exerciseName + " (poz: " + seriesPosition + ")");
                     }
                 },
-                dayId
+                dayId,
+                false // 🔴 Podczas rejestracji blokujemy edycję pól serii!
         );
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 

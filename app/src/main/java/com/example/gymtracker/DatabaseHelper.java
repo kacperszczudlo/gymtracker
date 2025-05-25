@@ -1070,6 +1070,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         int count = 0;
         try {
+            // 🔎 Oblicz daty początku i końca tygodnia
             Calendar calendar = Calendar.getInstance();
             calendar.setFirstDayOfWeek(Calendar.MONDAY);
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
@@ -1077,17 +1078,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
             String endDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.getTime());
 
-            String query = "SELECT COUNT(DISTINCT tl." + COLUMN_LOG_DATE + ") as count " +
-                    "FROM " + TABLE_TRAINING_LOG + " tl " +
-                    "JOIN " + TABLE_LOG_EXERCISE + " le ON tl." + COLUMN_LOG_ID + " = le." + COLUMN_LOG_ID + " " +
-                    "WHERE tl." + COLUMN_LOG_USER_ID + "=? " +
-                    "AND tl." + COLUMN_LOG_DATE + " BETWEEN ? AND ?";
-            Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(userId), startDate, endDate});
-            if (cursor.moveToFirst()) {
-                count = cursor.getInt(cursor.getColumnIndexOrThrow("count"));
+            Log.d("DEBUG", "Start of week: " + startDate);
+            Log.d("DEBUG", "End of week: " + endDate);
+
+            // 🔎 Sprawdź ile masz logów w tym tygodniu
+            Cursor logCursor = db.rawQuery("SELECT log_id, date, day_name FROM " + TABLE_TRAINING_LOG +
+                            " WHERE " + COLUMN_LOG_USER_ID + "=? AND date BETWEEN ? AND ?",
+                    new String[]{String.valueOf(userId), startDate, endDate});
+
+            Log.d("DEBUG", "Found " + logCursor.getCount() + " logs in training_log for this week.");
+
+            while (logCursor.moveToNext()) {
+                long logId = logCursor.getLong(logCursor.getColumnIndexOrThrow(COLUMN_LOG_ID));
+                String date = logCursor.getString(logCursor.getColumnIndexOrThrow(COLUMN_LOG_DATE));
+                String dayName = logCursor.getString(logCursor.getColumnIndexOrThrow(COLUMN_LOG_DAY_NAME));
+                Log.d("DEBUG", "Checking logId=" + logId + ", date=" + date + ", dayName=" + dayName);
+
+                // 🔎 Sprawdź, czy ten log ma ćwiczenia
+                Cursor exerciseCursor = db.rawQuery("SELECT COUNT(*) as cnt FROM " + TABLE_LOG_EXERCISE +
+                                " WHERE " + COLUMN_LOG_ID + "=?",
+                        new String[]{String.valueOf(logId)});
+                if (exerciseCursor.moveToFirst()) {
+                    int exerciseCount = exerciseCursor.getInt(exerciseCursor.getColumnIndexOrThrow("cnt"));
+                    Log.d("DEBUG", "  -> Exercises count: " + exerciseCount);
+
+                    // 🔴 Tu jest warunek, czy liczymy ten dzień
+                    if (exerciseCount > 0) {
+                        Log.d("DEBUG", "  -> This day will be counted!");
+                        count++;
+                    } else {
+                        Log.d("DEBUG", "  -> No exercises, skipping this day.");
+                    }
+                }
+                exerciseCursor.close();
             }
-            cursor.close();
-            Log.d("DatabaseHelper", "Active training days for user " + userId + " in week " + startDate + " to " + endDate + ": " + count);
+            logCursor.close();
+
+            Log.d("DEBUG", "Total active training days this week: " + count);
         } catch (Exception e) {
             Log.e("DatabaseHelper", "Error counting active training days: " + e.getMessage(), e);
         } finally {
@@ -1095,6 +1122,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
         return count;
     }
+
 
     public void clearTestData(int userId) {
         SQLiteDatabase db = this.getWritableDatabase();
