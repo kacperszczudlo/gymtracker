@@ -31,6 +31,8 @@ public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView weekDaysRecyclerView;
     private WeekDaysAdapter weekDaysAdapter;
     private String selectedDayName;
+    private int currentDayOfWeekIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+
     private ImageButton prevWeekButton;
     private TextView dateTextView;
     private ImageButton nextWeekButton;
@@ -104,12 +106,17 @@ public class TrainingMainActivity extends AppCompatActivity {
         weekDaysRecyclerView = findViewById(R.id.weekDaysRecyclerView);
         weekDaysAdapter = new WeekDaysAdapter(dayName -> {
             this.selectedDayName = dayName;
+            Integer calendarDayConstant = dayNameToCalendarField.get(dayName);
+            if (calendarDayConstant != null) {
+                this.currentDayOfWeekIndex = calendarDayConstant;
+            }
             updateCalendarToSelectedDay(dayName);
             updateDateTextView();
             this.currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             loadExercisesForDay(this.selectedDayName);
             weekDaysAdapter.setSelectedUserDay(this.selectedDayName);
         });
+
         LinearLayoutManager weekDaysLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         weekDaysRecyclerView.setLayoutManager(weekDaysLayoutManager);
         weekDaysRecyclerView.setAdapter(weekDaysAdapter);
@@ -163,8 +170,12 @@ public class TrainingMainActivity extends AppCompatActivity {
     }
 
     private void setInitialDayAndView() {
-        int calendarApiDayOfWeek = currentDisplayCalendar.get(Calendar.DAY_OF_WEEK);
+        setStartOfWeek();
+
+        int calendarApiDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
         int ourDayIndex = WeekDaysAdapter.getOurIndexFromCalendarField(calendarApiDayOfWeek);
+
+        if (ourDayIndex < 0) ourDayIndex = 0; // Na wszelki wypadek: fallback na poniedziałek
 
         if (ourDayIndex != -1 && weekDaysAdapter != null) {
             selectedDayName = weekDaysAdapter.getFullDayName(ourDayIndex);
@@ -191,6 +202,7 @@ public class TrainingMainActivity extends AppCompatActivity {
         }
     }
 
+
     private void initDateNavigation() {
         prevWeekButton = findViewById(R.id.prevWeekButton);
         dateTextView = findViewById(R.id.dateTextView);
@@ -200,6 +212,7 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         prevWeekButton.setOnClickListener(v -> {
             currentDisplayCalendar.add(Calendar.WEEK_OF_YEAR, -1);
+            currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, currentDayOfWeekIndex); // 👈 Ustaw ten sam dzień tygodnia!
             currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             updateDateTextView();
             if (selectedDayName != null) {
@@ -207,14 +220,19 @@ public class TrainingMainActivity extends AppCompatActivity {
             }
         });
 
+
+
         nextWeekButton.setOnClickListener(v -> {
             currentDisplayCalendar.add(Calendar.WEEK_OF_YEAR, 1);
+            currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, currentDayOfWeekIndex); // 👈 Ustaw ten sam dzień tygodnia!
             currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             updateDateTextView();
             if (selectedDayName != null) {
                 loadExercisesForDay(selectedDayName);
             }
         });
+
+
     }
 
     private void updateDateTextView() {
@@ -332,4 +350,9 @@ public class TrainingMainActivity extends AppCompatActivity {
             timerTextView.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
         }
     }
+    private void setStartOfWeek() {
+        currentDisplayCalendar.setFirstDayOfWeek(Calendar.MONDAY);
+        currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+    }
+
 }
