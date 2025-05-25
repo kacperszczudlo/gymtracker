@@ -16,7 +16,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class TrainingSetupActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -56,7 +59,20 @@ public class TrainingSetupActivity extends AppCompatActivity {
             loadExercisesForDay();
         }
 
-        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, true);
+        adapter = new ExerciseAdapter(
+                exerciseList,
+                this::removeExercise,
+                true,
+                (dayId, exerciseName, seriesPosition) -> {
+                    if (dayId != -1) {
+                        DatabaseHelper dbHelper = new DatabaseHelper(this);
+                        dbHelper.deleteDayExercise(dayId, exerciseName, seriesPosition);
+                        Log.d("TrainingSetupActivity", "Usunięto serię: " + exerciseName + " (pozycja: " + seriesPosition + ")");
+                    }
+                },
+                dayId
+        );
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
@@ -74,7 +90,9 @@ public class TrainingSetupActivity extends AppCompatActivity {
                 boolean ok = dbHelper.saveLogSeries(userId, logDate, dayName, exerciseList);
                 Log.d("DEBUG_PLAN", "saveLogSeries -> " + ok);
             } else {
-                long planId = dbHelper.saveTrainingPlan(userId, dayName, exerciseList);
+                // 🔴 Zamiast dzisiejszej daty, użyj daty logu/daty dnia, np. logDate
+                String validFromDate = logDate != null ? logDate : new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+                long planId = dbHelper.saveTrainingPlan(userId, dayName, exerciseList, validFromDate);
                 Log.d("DEBUG_PLAN", "saveTrainingPlan planId=" + planId);
             }
             Intent intent = new Intent(TrainingSetupActivity.this, TrainingMainActivity.class);
@@ -82,6 +100,7 @@ public class TrainingSetupActivity extends AppCompatActivity {
             setResult(RESULT_OK);
             finish();
         });
+
     }
 
     private void showExerciseDialog() {

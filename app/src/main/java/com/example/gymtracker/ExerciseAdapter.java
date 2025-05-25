@@ -14,15 +14,27 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
     private final ArrayList<Exercise> exerciseList;
     private final OnItemClickListener listener;
     private final boolean isEditable;
+    private final OnSeriesRemoveListener onSeriesRemoveListener;
+    private final long dayId; // Nowe pole!
 
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
 
-    public ExerciseAdapter(ArrayList<Exercise> exerciseList, OnItemClickListener listener, boolean isEditable) {
+    public interface OnSeriesRemoveListener {
+        void onSeriesRemove(long dayId, String exerciseName, int seriesPosition);
+    }
+
+    public ExerciseAdapter(ArrayList<Exercise> exerciseList,
+                           OnItemClickListener listener,
+                           boolean isEditable,
+                           OnSeriesRemoveListener onSeriesRemoveListener,
+                           long dayId) {
         this.exerciseList = exerciseList;
         this.listener = listener;
         this.isEditable = isEditable;
+        this.onSeriesRemoveListener = onSeriesRemoveListener;
+        this.dayId = dayId;
     }
 
     @NonNull
@@ -38,19 +50,13 @@ public class ExerciseAdapter extends RecyclerView.Adapter<ExerciseAdapter.ViewHo
         Exercise exercise = exerciseList.get(position);
         holder.exerciseNameTextView.setText(exercise.getName());
 
-        // Inicjalizacja SeriesAdapter
         SeriesAdapter seriesAdapter = new SeriesAdapter(
                 exercise.getSeriesList(),
                 isEditable,
                 seriesPosition -> {
                     exercise.removeSeries(seriesPosition);
                     notifyItemChanged(position);
-                    // Opcjonalnie: usuń z bazy danych
-                    long dayId = ((TrainingSetupActivity) holder.itemView.getContext()).getDayId();
-                    if (dayId != -1) {
-                        DatabaseHelper dbHelper = new DatabaseHelper(holder.itemView.getContext());
-                        dbHelper.deleteDayExercise(dayId, exercise.getName(), seriesPosition);
-                    }
+                    onSeriesRemoveListener.onSeriesRemove(dayId, exercise.getName(), seriesPosition);
                 }
         );
         holder.seriesRecyclerView.setLayoutManager(new LinearLayoutManager(holder.itemView.getContext()));

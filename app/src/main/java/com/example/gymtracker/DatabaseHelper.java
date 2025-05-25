@@ -19,7 +19,7 @@ import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "GymTracker.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     // Tabela użytkowników
     public static final String TABLE_USERS = "users";
@@ -74,6 +74,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_PLAN_EXERCISE_ID = "plan_exercise_id";
     private static final String COLUMN_PLAN_EXERCISE_NAME = "exercise_name";
     private static final String COLUMN_PLAN_SERIES_COUNT = "series_count";
+
+    private static final String COLUMN_PLAN_VALID_FROM = "plan_valid_from"; // <--- NOWA
+
 
     // Tabele dziennika treningowego
     private static final String TABLE_TRAINING_LOG = "training_log";
@@ -159,7 +162,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_PLAN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
                 COLUMN_PLAN_USER_ID + " INTEGER NOT NULL," +
                 COLUMN_PLAN_DAY_NAME + " TEXT NOT NULL," +
+                COLUMN_PLAN_VALID_FROM + " TEXT NOT NULL," + // NOWA KOLUMNA
                 "FOREIGN KEY(" + COLUMN_PLAN_USER_ID + ") REFERENCES " + TABLE_USERS + "(" + COLUMN_USER_ID + "))");
+
 
         db.execSQL("CREATE TABLE " + TABLE_PLAN_EXERCISE + " (" +
                 COLUMN_PLAN_EXERCISE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -451,62 +456,60 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
-    public long saveTrainingPlan(int userId, String dayName, List<Exercise> exerciseList) {
+    public long saveTrainingPlan(int userId, String dayName, List<Exercise> exerciseList, String planValidFrom) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         long planId = -1;
+
         try {
-            Cursor oldPlanCursor = db.query(TABLE_TRAINING_PLAN, new String[]{COLUMN_PLAN_ID},
-                    COLUMN_PLAN_USER_ID + "=? AND " + COLUMN_PLAN_DAY_NAME + "=?",
-                    new String[]{String.valueOf(userId), dayName}, null, null, null);
-
-            while (oldPlanCursor.moveToNext()) {
-                long oldPlanId = oldPlanCursor.getLong(oldPlanCursor.getColumnIndexOrThrow(COLUMN_PLAN_ID));
-                db.delete(TABLE_PLAN_EXERCISE, COLUMN_PLAN_ID + "=?", new String[]{String.valueOf(oldPlanId)});
-            }
-            oldPlanCursor.close();
-
-            db.delete(TABLE_TRAINING_PLAN,
+            // 🟢 Usuń stare plany dla tego dnia i użytkownika
+            int deletedPlans = db.delete(TABLE_TRAINING_PLAN,
                     COLUMN_PLAN_USER_ID + "=? AND " + COLUMN_PLAN_DAY_NAME + "=?",
                     new String[]{String.valueOf(userId), dayName});
+            Log.d("DEBUG_PLAN", "Usunięto " + deletedPlans + " stare plany dla userId=" + userId + " i dnia=" + dayName);
 
+            // 🟢 Dodaj nowy plan
             ContentValues planValues = new ContentValues();
             planValues.put(COLUMN_PLAN_USER_ID, userId);
             planValues.put(COLUMN_PLAN_DAY_NAME, dayName);
+            planValues.put(COLUMN_PLAN_VALID_FROM, planValidFrom);
+
             planId = db.insert(TABLE_TRAINING_PLAN, null, planValues);
+            Log.d("DEBUG_PLAN", "Dodano nowy planId=" + planId + " dla dnia=" + dayName + ", valid_from=" + planValidFrom);
 
-            Log.d("DEBUG_PLAN", "insert -> planId=" + planId + ", userId=" + userId + ", day=" + dayName);
-
+            // 🟢 Dodaj wszystkie ćwiczenia do planu
             if (planId != -1) {
                 for (Exercise ex : exerciseList) {
                     ContentValues exValues = new ContentValues();
                     exValues.put(COLUMN_PLAN_ID, planId);
                     exValues.put(COLUMN_PLAN_EXERCISE_NAME, ex.getName());
                     exValues.put(COLUMN_PLAN_SERIES_COUNT, ex.getSeriesList().size());
-                    if (db.insert(TABLE_PLAN_EXERCISE, null, exValues) == -1) {
+
+                    long inserted = db.insert(TABLE_PLAN_EXERCISE, null, exValues);
+                    if (inserted == -1) {
                         planId = -1;
+                        Log.e("DEBUG_PLAN", "Błąd podczas dodawania ćwiczenia: " + ex.getName());
                         break;
                     }
-                    Log.d("DEBUG_PLAN", "  + exercise '" + ex.getName() + "' (series=" + ex.getSeriesList().size() + ")");
+                    Log.d("DEBUG_PLAN", "  + dodano ćwiczenie: " + ex.getName() + " (serii=" + ex.getSeriesList().size() + ")");
                 }
             }
 
             if (planId != -1) {
-                db.delete(TABLE_TRAINING_LOG,
-                        COLUMN_LOG_USER_ID + "=? AND " + COLUMN_LOG_DATE + "=date('now','localtime') AND " +
-                                COLUMN_LOG_DAY_NAME + "=?",
-                        new String[]{String.valueOf(userId), dayName});
                 db.setTransactionSuccessful();
             }
         } catch (Exception e) {
-            Log.e("DB_ERROR", "Error saving training plan: " + e.getMessage());
+            Log.e("DB_ERROR", "Błąd przy zapisywaniu planu: " + e.getMessage());
             planId = -1;
         } finally {
             db.endTransaction();
             db.close();
         }
+
         return planId;
     }
+
+
 
     public boolean trainingLogExists(int userId, String date, String dayName) {
         SQLiteDatabase db = this.getReadableDatabase();
@@ -1292,6 +1295,84 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return entries;
     }
+
+
+    public long getActivePlanIdForDay(int userId, String dayName, String date) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        long planId = -1;
+        try {
+            // Szukamy planu, który jest ważny od daty <= date
+            Cursor cursor = db.rawQuery(
+                    "SELECT " + COLUMN_PLAN_ID + " FROM " + TABLE_TRAINING_PLAN +
+                            " WHERE " + COLUMN_PLAN_USER_ID + " = ? AND " + COLUMN_PLAN_DAY_NAME + " = ? " +
+                            "AND date(" + COLUMN_PLAN_VALID_FROM + ") <= date(?) " +
+                            "ORDER BY date(" + COLUMN_PLAN_VALID_FROM + ") DESC LIMIT 1",
+                    new String[]{String.valueOf(userId), dayName, date});
+
+            if (cursor.moveToFirst()) {
+                planId = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_PLAN_ID));
+            }
+            cursor.close();
+
+            // 🚀 Kluczowe: sprawdzamy, czy w tym dniu są ćwiczenia w planie (czyli plan jest aktywny)
+            if (planId != -1) {
+                Cursor exCursor = db.query(TABLE_PLAN_EXERCISE,
+                        new String[]{COLUMN_PLAN_EXERCISE_ID},
+                        COLUMN_PLAN_ID + "=?",
+                        new String[]{String.valueOf(planId)},
+                        null, null, null);
+
+                // Jeśli nie ma ćwiczeń w planie (plan pusty) – to nie ma sensu go pokazywać
+                if (exCursor.getCount() == 0) {
+                    planId = -1;
+                }
+                exCursor.close();
+            }
+        } finally {
+            db.close();
+        }
+        return planId;
+    }
+
+
+
+    public boolean isLogConsistentWithPlan(long logId, long planId) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        try {
+            Cursor cursor = db.rawQuery(
+                    "SELECT COUNT(*) FROM " + TABLE_LOG_EXERCISE + " le " +
+                            "LEFT JOIN " + TABLE_PLAN_EXERCISE + " pe ON le." + COLUMN_PLAN_EXERCISE_NAME + " = pe." + COLUMN_PLAN_EXERCISE_NAME +
+                            " WHERE le." + COLUMN_LOG_ID + "=? AND pe." + COLUMN_PLAN_ID + "!=?",
+                    new String[]{String.valueOf(logId), String.valueOf(planId)}
+            );
+            boolean inconsistent = false;
+            if (cursor.moveToFirst()) {
+                int count = cursor.getInt(0);
+                inconsistent = count > 0;
+            }
+            cursor.close();
+            return !inconsistent;
+        } finally {
+            db.close();
+        }
+    }
+
+    public void deleteLog(long logId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(TABLE_LOG_SERIES, COLUMN_LOG_EXERCISE_ID + " IN (SELECT " + COLUMN_LOG_EXERCISE_ID + " FROM " + TABLE_LOG_EXERCISE + " WHERE " + COLUMN_LOG_ID + "=?)",
+                    new String[]{String.valueOf(logId)});
+            db.delete(TABLE_LOG_EXERCISE, COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)});
+            db.delete(TABLE_TRAINING_LOG, COLUMN_LOG_ID + "=?", new String[]{String.valueOf(logId)});
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+            db.close();
+        }
+    }
+
+
 
 
 

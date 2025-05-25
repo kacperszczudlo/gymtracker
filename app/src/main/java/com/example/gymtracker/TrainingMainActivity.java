@@ -77,7 +77,18 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         exerciseRecyclerView = findViewById(R.id.exerciseRecyclerView);
         exerciseList = new ArrayList<>();
-        exerciseAdapter = new ExerciseAdapter(exerciseList, null, false);
+        exerciseAdapter = new ExerciseAdapter(
+                exerciseList,
+                null,
+                false,
+                (dayId, exerciseName, seriesPosition) -> {
+                    // Tutaj nie trzeba nic robić – w TrainingMainActivity nie musimy usuwać z DB!
+                    // Możesz zostawić puste ciało albo dodać log, np.:
+                    Log.d("TrainingMain", "Usunięto serię: " + exerciseName + " (pozycja: " + seriesPosition + ")");
+                },
+                -1L // dayId: w TrainingMainActivity nie edytujemy planu, więc daj -1
+        );
+
         exerciseRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         exerciseRecyclerView.setAdapter(exerciseAdapter);
         exerciseRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -223,32 +234,29 @@ public class TrainingMainActivity extends AppCompatActivity {
 
     private void loadExercisesForDay(String dayName) {
         if (dayName == null || dayName.isEmpty()) {
-            Log.w("LoadExercises", "Próba załadowania ćwiczeń dla pustej nazwy dnia.");
             exerciseList.clear();
-            if (exerciseAdapter != null) exerciseAdapter.notifyDataSetChanged();
+            exerciseAdapter.notifyDataSetChanged();
             return;
         }
+
         exerciseList.clear();
-        Log.d("DEBUG_LOG", "Ładowanie dla dnia: " + dayName + ", Data dla bazy: " + currentSelectedDateString);
-
         boolean logExists = dbHelper.trainingLogExists(userId, currentSelectedDateString, dayName);
-        Log.d("DEBUG_LOG", "Czy log (" + currentSelectedDateString + ", " + dayName + ") istnieje: " + logExists);
 
-        if (!logExists) {
-            boolean createdFromPlan = dbHelper.createEmptyTrainingLogFromPlan(userId, dayName, currentSelectedDateString);
-            if (!createdFromPlan) {
-                long id = dbHelper.createEmptyTrainingLog(userId, dayName, currentSelectedDateString);
-                Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log (" + currentSelectedDateString + ", " + dayName + "), id=" + id);
-            }
+        if (logExists) {
+            exerciseList.addAll(dbHelper.getLogExercises(userId, currentSelectedDateString, dayName));
+            Log.d("DEBUG", "Wczytano ćwiczenia z logu");
+        } else {
+            long dayId = dbHelper.getTrainingDayId(userId, dayName);
+            exerciseList.addAll(dbHelper.getDayExercises(dayId));
+            Log.d("DEBUG", "Brak logu – wczytano szablon z planu (bez zapisu!)");
         }
 
-        exerciseList.addAll(dbHelper.getLogExercises(userId, currentSelectedDateString, dayName));
-        Log.d("DEBUG_LOG", "Załadowano ćwiczeń: " + exerciseList.size() + " dla " + currentSelectedDateString + " (" + dayName + ")");
-
-        if (exerciseAdapter != null) {
-            exerciseAdapter.notifyDataSetChanged();
-        }
+        exerciseAdapter.notifyDataSetChanged();
     }
+
+
+
+
 
     private long getDayId(String dayName) {
         return dbHelper.getTrainingDayId(userId, dayName);
