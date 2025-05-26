@@ -31,6 +31,8 @@ public class TrainingMainActivity extends AppCompatActivity {
     private RecyclerView weekDaysRecyclerView;
     private WeekDaysAdapter weekDaysAdapter;
     private String selectedDayName;
+    private int currentDayOfWeekIndex = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
+
     private ImageButton prevWeekButton;
     private TextView dateTextView;
     private ImageButton nextWeekButton;
@@ -77,7 +79,18 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         exerciseRecyclerView = findViewById(R.id.exerciseRecyclerView);
         exerciseList = new ArrayList<>();
-        exerciseAdapter = new ExerciseAdapter(exerciseList, null, false);
+        exerciseAdapter = new ExerciseAdapter(
+                exerciseList,
+                null,
+                false,
+                (dayId, exerciseName, seriesPosition) -> {
+                    Log.d("TrainingMain", "Usunięto serię: " + exerciseName + " (pozycja: " + seriesPosition + ")");
+                },
+                -1L,
+                false // 🔴 NOWY ARGUMENT – pola w SeriesAdapter NIE SĄ EDYTOWALNE
+        );
+
+
         exerciseRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         exerciseRecyclerView.setAdapter(exerciseAdapter);
         exerciseRecyclerView.addItemDecoration(new RecyclerView.ItemDecoration() {
@@ -93,12 +106,17 @@ public class TrainingMainActivity extends AppCompatActivity {
         weekDaysRecyclerView = findViewById(R.id.weekDaysRecyclerView);
         weekDaysAdapter = new WeekDaysAdapter(dayName -> {
             this.selectedDayName = dayName;
+            Integer calendarDayConstant = dayNameToCalendarField.get(dayName);
+            if (calendarDayConstant != null) {
+                this.currentDayOfWeekIndex = calendarDayConstant;
+            }
             updateCalendarToSelectedDay(dayName);
             updateDateTextView();
             this.currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             loadExercisesForDay(this.selectedDayName);
             weekDaysAdapter.setSelectedUserDay(this.selectedDayName);
         });
+
         LinearLayoutManager weekDaysLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         weekDaysRecyclerView.setLayoutManager(weekDaysLayoutManager);
         weekDaysRecyclerView.setAdapter(weekDaysAdapter);
@@ -152,8 +170,12 @@ public class TrainingMainActivity extends AppCompatActivity {
     }
 
     private void setInitialDayAndView() {
-        int calendarApiDayOfWeek = currentDisplayCalendar.get(Calendar.DAY_OF_WEEK);
+        setStartOfWeek();
+
+        int calendarApiDayOfWeek = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
         int ourDayIndex = WeekDaysAdapter.getOurIndexFromCalendarField(calendarApiDayOfWeek);
+
+        if (ourDayIndex < 0) ourDayIndex = 0; // Na wszelki wypadek: fallback na poniedziałek
 
         if (ourDayIndex != -1 && weekDaysAdapter != null) {
             selectedDayName = weekDaysAdapter.getFullDayName(ourDayIndex);
@@ -180,6 +202,7 @@ public class TrainingMainActivity extends AppCompatActivity {
         }
     }
 
+
     private void initDateNavigation() {
         prevWeekButton = findViewById(R.id.prevWeekButton);
         dateTextView = findViewById(R.id.dateTextView);
@@ -189,6 +212,7 @@ public class TrainingMainActivity extends AppCompatActivity {
 
         prevWeekButton.setOnClickListener(v -> {
             currentDisplayCalendar.add(Calendar.WEEK_OF_YEAR, -1);
+            currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, currentDayOfWeekIndex); // 👈 Ustaw ten sam dzień tygodnia!
             currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             updateDateTextView();
             if (selectedDayName != null) {
@@ -196,14 +220,19 @@ public class TrainingMainActivity extends AppCompatActivity {
             }
         });
 
+
+
         nextWeekButton.setOnClickListener(v -> {
             currentDisplayCalendar.add(Calendar.WEEK_OF_YEAR, 1);
+            currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, currentDayOfWeekIndex); // 👈 Ustaw ten sam dzień tygodnia!
             currentSelectedDateString = dateFormatForDb.format(currentDisplayCalendar.getTime());
             updateDateTextView();
             if (selectedDayName != null) {
                 loadExercisesForDay(selectedDayName);
             }
         });
+
+
     }
 
     private void updateDateTextView() {
@@ -223,32 +252,29 @@ public class TrainingMainActivity extends AppCompatActivity {
 
     private void loadExercisesForDay(String dayName) {
         if (dayName == null || dayName.isEmpty()) {
-            Log.w("LoadExercises", "Próba załadowania ćwiczeń dla pustej nazwy dnia.");
             exerciseList.clear();
-            if (exerciseAdapter != null) exerciseAdapter.notifyDataSetChanged();
+            exerciseAdapter.notifyDataSetChanged();
             return;
         }
+
         exerciseList.clear();
-        Log.d("DEBUG_LOG", "Ładowanie dla dnia: " + dayName + ", Data dla bazy: " + currentSelectedDateString);
-
         boolean logExists = dbHelper.trainingLogExists(userId, currentSelectedDateString, dayName);
-        Log.d("DEBUG_LOG", "Czy log (" + currentSelectedDateString + ", " + dayName + ") istnieje: " + logExists);
 
-        if (!logExists) {
-            boolean createdFromPlan = dbHelper.createEmptyTrainingLogFromPlan(userId, dayName, currentSelectedDateString);
-            if (!createdFromPlan) {
-                long id = dbHelper.createEmptyTrainingLog(userId, dayName, currentSelectedDateString);
-                Log.d("DEBUG_LOG", "Brak planu – stworzono pusty log (" + currentSelectedDateString + ", " + dayName + "), id=" + id);
-            }
+        if (logExists) {
+            exerciseList.addAll(dbHelper.getLogExercises(userId, currentSelectedDateString, dayName));
+            Log.d("DEBUG", "Wczytano ćwiczenia z logu");
+        } else {
+            long dayId = dbHelper.getTrainingDayId(userId, dayName);
+            exerciseList.addAll(dbHelper.getDayExercises(dayId));
+            Log.d("DEBUG", "Brak logu – wczytano szablon z planu (bez zapisu!)");
         }
 
-        exerciseList.addAll(dbHelper.getLogExercises(userId, currentSelectedDateString, dayName));
-        Log.d("DEBUG_LOG", "Załadowano ćwiczeń: " + exerciseList.size() + " dla " + currentSelectedDateString + " (" + dayName + ")");
-
-        if (exerciseAdapter != null) {
-            exerciseAdapter.notifyDataSetChanged();
-        }
+        exerciseAdapter.notifyDataSetChanged();
     }
+
+
+
+
 
     private long getDayId(String dayName) {
         return dbHelper.getTrainingDayId(userId, dayName);
@@ -324,4 +350,9 @@ public class TrainingMainActivity extends AppCompatActivity {
             timerTextView.setText(String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds));
         }
     }
+    private void setStartOfWeek() {
+        currentDisplayCalendar.setFirstDayOfWeek(Calendar.MONDAY);
+        currentDisplayCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+    }
+
 }

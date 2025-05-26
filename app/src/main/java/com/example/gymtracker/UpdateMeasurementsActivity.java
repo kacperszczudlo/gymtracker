@@ -170,6 +170,7 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
             boolean success = dbHelper.updateProfile(userId, loadedGender, height, armCirc, waistCirc, hipCirc, weight);
 
             if (success) {
+                dbHelper.insertBodyStatHistory(userId, weight, armCirc, waistCirc, hipCirc);
                 Toast.makeText(this, "Pomiary zapisane", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Measurements updated: userId=" + userId + ", height=" + height + ", armCirc=" + armCirc +
                         ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);

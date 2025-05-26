@@ -16,7 +16,10 @@ import com.example.gymtracker.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class TrainingSetupRegisterActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -47,28 +50,47 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
         exerciseList = new ArrayList<>();
         loadExercisesForDay();
 
-        adapter = new ExerciseAdapter(exerciseList, this::removeExercise, true);
+        adapter = new ExerciseAdapter(
+                exerciseList,
+                this::removeExercise,
+                true,
+                (dayId, exerciseName, seriesPosition) -> {
+                    if (dayId != -1) {
+                        DatabaseHelper dbHelper = new DatabaseHelper(this);
+                        dbHelper.deleteDayExercise(dayId, exerciseName, seriesPosition);
+                    }
+                },
+                dayId,
+                false // 🔴 Podczas rejestracji blokujemy edycję pól serii!
+        );
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
 
         addExerciseButton.setOnClickListener(v -> showExerciseDialog());
 
         nextButton.setOnClickListener(v -> {
-            // Usuń istniejące ćwiczenia dla tego dnia
+            // Usuń stare ćwiczenia dnia (w tabeli day_exercise)
             dbHelper.deleteDayExercises(dayId);
-            // Zapisz nowe ćwiczenia
+
+            // Zapisz nowe ćwiczenia w tabeli day_exercise
             for (Exercise exercise : exerciseList) {
-                if (!exercise.getSeriesList().isEmpty()) { // Zapisz tylko ćwiczenia z seriami
-                    dbHelper.saveDayExercise(dayId, exercise);
-                }
+                dbHelper.saveDayExercise(dayId, exercise);
             }
-            dbHelper.saveTrainingPlan(userId, dayName, exerciseList);   // :contentReference[oaicite:2]{index=2}
+
+            // Pobierz dzisiejszą datę jako plan_valid_from
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            String todayDate = dateFormat.format(new Date());
+
+            // Zapisz nowy plan ćwiczeń w tabeli plan_exercise (jeśli chcesz śledzić historię)
+            dbHelper.saveTrainingPlan(userId, dayName, exerciseList, todayDate);
 
             // Wróć do TrainingDaysActivity
             Intent intent = new Intent(TrainingSetupRegisterActivity.this, TrainingDaysActivity.class);
             startActivity(intent);
             finish();
         });
+
     }
 
     private void showExerciseDialog() {
@@ -105,7 +127,6 @@ public class TrainingSetupRegisterActivity extends AppCompatActivity {
         // Rozszerzenie na 100% wysokości
         View bottomSheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
         if (bottomSheet != null) {
-
             BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             bottomSheet.setLayoutParams(bottomSheet.getLayoutParams());

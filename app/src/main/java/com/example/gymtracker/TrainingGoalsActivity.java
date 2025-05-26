@@ -128,27 +128,32 @@ public class TrainingGoalsActivity extends AppCompatActivity {
             if (goalsCursor.moveToFirst()) {
                 targetWeight = goalsCursor.getFloat(goalsCursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TARGET_WEIGHT));
                 startWeight = goalsCursor.getFloat(goalsCursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_START_WEIGHT));
+                targetTrainingDays = goalsCursor.getInt(goalsCursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TARGET_TRAINING_DAYS));
                 targetWeightEditText.setText(String.format(Locale.US, "%.1f", targetWeight));
-                Log.d(TAG, "Loaded targetWeight: " + targetWeight + ", startWeight: " + startWeight);
+                targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
+                Log.d(TAG, "Loaded from user_goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight + ", targetTrainingDays=" + targetTrainingDays);
             } else {
                 targetWeight = currentWeight > 0 ? currentWeight : 0f;
                 startWeight = currentWeight;
+                targetTrainingDays = DEFAULT_TARGET_TRAINING_DAYS; // Domyślnie 3
                 if (currentWeight > 0) {
                     ContentValues values = new ContentValues();
                     values.put(DatabaseHelper.COLUMN_USER_ID, userId);
                     values.put(DatabaseHelper.COLUMN_TARGET_WEIGHT, targetWeight);
                     values.put(DatabaseHelper.COLUMN_START_WEIGHT, startWeight);
-                    values.put(DatabaseHelper.COLUMN_TARGET_TRAINING_DAYS, DEFAULT_TARGET_TRAINING_DAYS);
+                    values.put(DatabaseHelper.COLUMN_TARGET_TRAINING_DAYS, targetTrainingDays);
                     boolean success = dbHelper.saveUserGoals(userId, values, db);
                     if (success) {
                         targetWeightEditText.setText(String.format(Locale.US, "%.1f", targetWeight));
-                        Log.d(TAG, "Initialized user_goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight);
+                        targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
+                        Log.d(TAG, "Initialized user_goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight + ", targetTrainingDays=" + targetTrainingDays);
                     } else {
                         Log.e(TAG, "Failed to initialize user_goals");
                         Toast.makeText(this, "Błąd podczas inicjalizacji celów", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     targetWeightEditText.setText("");
+                    targetTrainingDaysEditText.setText(String.valueOf(DEFAULT_TARGET_TRAINING_DAYS));
                     Log.w(TAG, "No goal data and no valid currentWeight for userId: " + userId);
                 }
             }
@@ -170,14 +175,36 @@ public class TrainingGoalsActivity extends AppCompatActivity {
             currentTrainingDays = dbHelper.getActiveTrainingDaysCount(userId);
             Log.d(TAG, "Loaded currentTrainingDays: " + currentTrainingDays);
 
-            // Load target training days from training plan instead of user_goals
-            targetTrainingDays = dbHelper.getTargetTrainingDaysFromPlan(userId);
+            // Opcjonalnie: Loguj liczbę dni w planie dla informacji
+            int planTrainingDays = dbHelper.getTargetTrainingDaysFromPlan(userId);
+            Log.d(TAG, "Training days in plan for userId " + userId + ": " + planTrainingDays);
+
+            // targetTrainingDays jest już wczytane w loadWeightData z user_goals
             if (targetTrainingDays == 0) {
                 targetTrainingDays = DEFAULT_TARGET_TRAINING_DAYS;
-                Log.w(TAG, "No training plan found, using default targetTrainingDays: " + targetTrainingDays);
+                targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
+                Log.w(TAG, "No targetTrainingDays in user_goals, using default: " + targetTrainingDays);
+                // Zapisz domyślną wartość do bazy
+                ContentValues values = new ContentValues();
+                values.put(DatabaseHelper.COLUMN_USER_ID, userId);
+                values.put(DatabaseHelper.COLUMN_TARGET_WEIGHT, targetWeight);
+                values.put(DatabaseHelper.COLUMN_START_WEIGHT, startWeight);
+                values.put(DatabaseHelper.COLUMN_TARGET_TRAINING_DAYS, targetTrainingDays);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                db.beginTransaction();
+                try {
+                    boolean success = dbHelper.saveUserGoals(userId, values, db);
+                    if (success) {
+                        Log.d(TAG, "Saved default targetTrainingDays to user_goals: " + targetTrainingDays);
+                    } else {
+                        Log.e(TAG, "Failed to save default targetTrainingDays");
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                    db.close();
+                }
             }
-            targetTrainingDaysEditText.setText(String.valueOf(targetTrainingDays));
-            Log.d(TAG, "Loaded targetTrainingDays from plan: " + targetTrainingDays);
 
             updateTrainingDaysProgress();
         } catch (Exception e) {
@@ -201,7 +228,7 @@ public class TrainingGoalsActivity extends AppCompatActivity {
             }
 
             String targetTrainingDaysStr = targetTrainingDaysEditText.getText().toString().trim();
-            int newTargetTrainingDays = DEFAULT_TARGET_TRAINING_DAYS;
+            int newTargetTrainingDays = targetTrainingDays; // Zachowaj bieżącą wartość z user_goals
             if (!targetTrainingDaysStr.isEmpty()) {
                 newTargetTrainingDays = Integer.parseInt(targetTrainingDaysStr);
                 if (newTargetTrainingDays <= 0 || newTargetTrainingDays > 7) {
@@ -227,10 +254,10 @@ public class TrainingGoalsActivity extends AppCompatActivity {
                 targetTrainingDays = newTargetTrainingDays;
                 updateWeightProgress();
                 updateTrainingDaysProgress();
-                Log.d(TAG, "Saved goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight + ", targetTrainingDays=" + targetTrainingDays);
+                Log.d(TAG, "Saved goals: targetWeight=" + targetWeight + ", startWeight=" + startWeight + ", targetTrainingDays=" + newTargetTrainingDays);
             } else {
                 Toast.makeText(this, "Błąd podczas zapisywania celów", Toast.LENGTH_SHORT).show();
-                Log.e(TAG, "Failed to save user_goals");
+                Log.e(TAG, "Failed to save user_goals: values=" + values.toString());
             }
         } catch (NumberFormatException e) {
             Toast.makeText(this, "Nieprawidłowy format danych", Toast.LENGTH_SHORT).show();
