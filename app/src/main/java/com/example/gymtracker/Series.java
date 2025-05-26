@@ -28,7 +28,7 @@ public class Series implements Parcelable {
             return new Series[size];
         }
     };
-
+// t
     public int getReps() {
         return reps;
     }

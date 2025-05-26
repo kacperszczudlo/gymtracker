@@ -1,6 +1,5 @@
 package com.example.gymtracker;
 
-import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -12,12 +11,14 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.Locale;
 
 public class UpdateMeasurementsActivity extends AppCompatActivity {
     private static final String TAG = "UpdateMeasurements";
     private DatabaseHelper dbHelper;
+    private EditText heightEditText, armCircEditText, waistCircEditText, hipCircEditText, weightEditText;
     private int userId;
-    private EditText heightEditText, weightEditText, armCircEditText, waistCircEditText, hipCircEditText;
+    private String loadedGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,49 +39,48 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
             return;
         }
 
-        // Initialize views with null checks
         heightEditText = findViewById(R.id.heightEditText);
-        weightEditText = findViewById(R.id.weightEditText);
         armCircEditText = findViewById(R.id.armCircEditText);
         waistCircEditText = findViewById(R.id.waistCircEditText);
         hipCircEditText = findViewById(R.id.hipCircEditText);
+        weightEditText = findViewById(R.id.weightEditText);
         Button saveButton = findViewById(R.id.saveButton);
         ImageButton menuButton = findViewById(R.id.menuButton);
-        ImageButton profileButton = findViewById(R.id.profileButton);
         ImageButton homeButton = findViewById(R.id.homeButton);
+        ImageButton profileButton = findViewById(R.id.profileButton);
 
-        // Check for null views
-        if (heightEditText == null || weightEditText == null || armCircEditText == null ||
-                waistCircEditText == null || hipCircEditText == null || saveButton == null ||
-                menuButton == null || profileButton == null) {
-            Log.e(TAG, "One or more views are null");
-            Toast.makeText(this, "Błąd: Nie znaleziono elementów interfejsu", Toast.LENGTH_LONG).show();
+        if (heightEditText == null) Log.e(TAG, "heightEditText is null");
+        if (armCircEditText == null) Log.e(TAG, "armCircEditText is null");
+        if (waistCircEditText == null) Log.e(TAG, "waistCircEditText is null");
+        if (hipCircEditText == null) Log.e(TAG, "hipCircEditText is null");
+        if (weightEditText == null) Log.e(TAG, "weightEditText is null");
+        if (saveButton == null) Log.e(TAG, "saveButton is null");
+        if (menuButton == null) Log.e(TAG, "menuButton is null");
+        if (homeButton == null) Log.e(TAG, "homeButton is null");
+        if (profileButton == null) Log.e(TAG, "profileButton is null");
+
+        if (heightEditText == null || armCircEditText == null || waistCircEditText == null ||
+                hipCircEditText == null || weightEditText == null || saveButton == null ||
+                menuButton == null || homeButton == null || profileButton == null) {
+            Log.e(TAG, "One or more views not found in layout");
+            Toast.makeText(this, "Błąd: Nie znaleziono elementów interfejsu", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
-        // Load existing measurements
-        try {
-            loadMeasurements();
-        } catch (Exception e) {
-            Log.e(TAG, "Error loading measurements: " + e.getMessage(), e);
-            Toast.makeText(this, "Błąd podczas ładowania danych: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        loadProfileData();
 
-        // Set click listeners
-        saveButton.setOnClickListener(v -> {
-            try {
-                saveMeasurements();
-            } catch (Exception e) {
-                Log.e(TAG, "Error saving measurements: " + e.getMessage(), e);
-                Toast.makeText(this, "Błąd podczas zapisywania danych: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        });
+        saveButton.setOnClickListener(v -> saveMeasurements());
 
         menuButton.setOnClickListener(v -> {
             Intent intent = new Intent(UpdateMeasurementsActivity.this, AccountSettingsActivity.class);
+            startActivity(intent);
+            setResult(RESULT_OK);
+            finish();
+        });
+
+        homeButton.setOnClickListener(v -> {
+            Intent intent = new Intent(UpdateMeasurementsActivity.this, TrainingMainActivity.class);
             startActivity(intent);
         });
 
@@ -88,93 +88,104 @@ public class UpdateMeasurementsActivity extends AppCompatActivity {
             Intent intent = new Intent(UpdateMeasurementsActivity.this, UserProfileActivity.class);
             startActivity(intent);
         });
-        homeButton.setOnClickListener(v -> {
-            Intent intent = new Intent(UpdateMeasurementsActivity.this, TrainingMainActivity.class);
-            startActivity(intent);
-        });
     }
 
-    private void loadMeasurements() {
+    private void loadProfileData() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        try {
-            Cursor cursor = db.query("profile", new String[]{"height", "weight", "arm_circumference", "waist_circumference", "hip_circumference"},
-                    "user_id=?", new String[]{String.valueOf(userId)}, null, null, null);
-            if (cursor != null) {
-                if (cursor.moveToFirst()) {
-                    heightEditText.setText(String.valueOf(cursor.getFloat(cursor.getColumnIndexOrThrow("height"))));
-                    weightEditText.setText(String.valueOf(cursor.getFloat(cursor.getColumnIndexOrThrow("weight"))));
-                    armCircEditText.setText(String.valueOf(cursor.getFloat(cursor.getColumnIndexOrThrow("arm_circumference"))));
-                    waistCircEditText.setText(String.valueOf(cursor.getFloat(cursor.getColumnIndexOrThrow("waist_circumference"))));
-                    hipCircEditText.setText(String.valueOf(cursor.getFloat(cursor.getColumnIndexOrThrow("hip_circumference"))));
+        String[] projection = {
+                DatabaseHelper.COLUMN_GENDER,
+                DatabaseHelper.COLUMN_HEIGHT,
+                DatabaseHelper.COLUMN_ARM_CIRC,
+                DatabaseHelper.COLUMN_WAIST_CIRC,
+                DatabaseHelper.COLUMN_HIP_CIRC,
+                DatabaseHelper.COLUMN_WEIGHT,
+                DatabaseHelper.COLUMN_DATE
+        };
+        String selection = DatabaseHelper.COLUMN_PROFILE_USER_ID + "=?";
+        String[] selectionArgs = {String.valueOf(userId)};
+
+        try (Cursor cursor = db.query(DatabaseHelper.TABLE_PROFILE, projection, selection, selectionArgs,
+                null, null, DatabaseHelper.COLUMN_DATE + " DESC", "1")) {
+            if (cursor.moveToFirst()) {
+                loadedGender = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_GENDER));
+                if (loadedGender == null || loadedGender.isEmpty()) {
+                    loadedGender = "Not specified";
                 }
-                cursor.close();
+
+                float height = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_HEIGHT));
+                float armCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ARM_CIRC));
+                float waistCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WAIST_CIRC));
+                float hipCirc = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_HIP_CIRC));
+                float weight = cursor.getFloat(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_WEIGHT));
+
+                heightEditText.setText(height > 0 ? String.format(Locale.US, "%.1f", height) : "");
+                armCircEditText.setText(armCirc > 0 ? String.format(Locale.US, "%.1f", armCirc) : "");
+                waistCircEditText.setText(waistCirc > 0 ? String.format(Locale.US, "%.1f", waistCirc) : "");
+                hipCircEditText.setText(hipCirc > 0 ? String.format(Locale.US, "%.1f", hipCirc) : "");
+                weightEditText.setText(weight > 0 ? String.format(Locale.US, "%.1f", weight) : "");
+
+                Log.d(TAG, "Loaded profile: gender=" + loadedGender + ", height=" + height + ", armCirc=" + armCirc +
+                        ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
             } else {
-                Log.e(TAG, "Cursor is null");
-                Toast.makeText(this, "Błąd: Nie można załadować danych", Toast.LENGTH_SHORT).show();
+                Log.w(TAG, "No profile data found for userId: " + userId);
+                loadedGender = "Not specified";
+                Toast.makeText(this, "Brak zapisanych danych. Wprowadź nowe pomiary.", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
-            Log.e(TAG, "Database error in loadMeasurements: " + e.getMessage(), e);
-            throw e;
+            Log.e(TAG, "Error loading profile data: " + e.getMessage(), e);
+            loadedGender = "Not specified";
+            Toast.makeText(this, "Błąd podczas ładowania danych: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        } finally {
+            db.close();
         }
     }
 
     private void saveMeasurements() {
         String heightStr = heightEditText.getText().toString().trim();
-        String weightStr = weightEditText.getText().toString().trim();
         String armCircStr = armCircEditText.getText().toString().trim();
         String waistCircStr = waistCircEditText.getText().toString().trim();
         String hipCircStr = hipCircEditText.getText().toString().trim();
+        String weightStr = weightEditText.getText().toString().trim();
 
-        if (heightStr.isEmpty() || weightStr.isEmpty() || armCircStr.isEmpty() || waistCircStr.isEmpty() || hipCircStr.isEmpty()) {
-            Toast.makeText(this, "Wypełnij wszystkie pola", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        float height, weight, armCirc, waistCirc, hipCirc;
-        try {
-            height = Float.parseFloat(heightStr);
-            weight = Float.parseFloat(weightStr);
-            armCirc = Float.parseFloat(armCircStr);
-            waistCirc = Float.parseFloat(waistCircStr);
-            hipCirc = Float.parseFloat(hipCircStr);
-        } catch (NumberFormatException e) {
-            Log.e(TAG, "Invalid number format: " + e.getMessage(), e);
-            Toast.makeText(this, "Wprowadź poprawne wartości liczbowe", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("height", height);
-        values.put("weight", weight);
-        values.put("arm_circumference", armCirc);
-        values.put("waist_circumference", waistCirc);
-        values.put("hip_circumference", hipCirc);
-        values.put("user_id", userId);
-        values.put("gender", "Nieokreślona");
+        float height, armCirc, waistCirc, hipCirc, weight;
 
         try {
-            db.beginTransaction();
-            try {
-                // Try update first
-                int rowsAffected = db.update("profile", values, "user_id=?", new String[]{String.valueOf(userId)});
-                Log.d(TAG, "Update rows affected: " + rowsAffected);
+            height = heightStr.isEmpty() ? 0f : Float.parseFloat(heightStr);
+            armCirc = armCircStr.isEmpty() ? 0f : Float.parseFloat(armCircStr);
+            waistCirc = waistCircStr.isEmpty() ? 0f : Float.parseFloat(waistCircStr);
+            hipCirc = hipCircStr.isEmpty() ? 0f : Float.parseFloat(hipCircStr);
+            weight = weightStr.isEmpty() ? 0f : Float.parseFloat(weightStr);
 
-                // If no rows updated, insert a new record
-                if (rowsAffected == 0) {
-                    long insertResult = db.insertOrThrow("profile", null, values);
-                    Log.d(TAG, "Insert result: " + insertResult);
-                }
-
-                db.setTransactionSuccessful();
-                Toast.makeText(this, "Pomiary zaktualizowane", Toast.LENGTH_SHORT).show();
-                finish();
-            } finally {
-                db.endTransaction();
+            if (height < 0 || armCirc < 0 || waistCirc < 0 || hipCirc < 0 || weight < 0) {
+                Toast.makeText(this, "Pomiary nie mogą być ujemne", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            if (weight == 0) {
+                Toast.makeText(this, "Waga jest wymagana", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Use updateProfile instead of saveProfile to update existing profile
+            boolean success = dbHelper.updateProfile(userId, loadedGender, height, armCirc, waistCirc, hipCirc, weight);
+
+            if (success) {
+                dbHelper.insertBodyStatHistory(userId, weight, armCirc, waistCirc, hipCirc);
+                Toast.makeText(this, "Pomiary zapisane", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Measurements updated: userId=" + userId + ", height=" + height + ", armCirc=" + armCirc +
+                        ", waistCirc=" + waistCirc + ", hipCirc=" + hipCirc + ", weight=" + weight);
+                setResult(RESULT_OK);
+                finish();
+            } else {
+                Toast.makeText(this, "Błąd podczas zapisywania pomiarów", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Failed to update measurements for userId=" + userId);
+            }
+        } catch (NumberFormatException e) {
+            Toast.makeText(this, "Nieprawidłowy format danych", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Invalid input format: " + e.getMessage(), e);
         } catch (Exception e) {
-            Log.e(TAG, "Database error in saveMeasurements: " + e.getMessage(), e);
-            Toast.makeText(this, "Błąd podczas zapisywania danych: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Błąd podczas zapisywania danych", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "Error saving measurements: " + e.getMessage(), e);
         }
     }
 }

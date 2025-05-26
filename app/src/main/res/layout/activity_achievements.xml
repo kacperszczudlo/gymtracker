@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#212121">
+
+    <!-- Username -->
+    <TextView
+        android:id="@+id/usernameTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="16dp"
+        android:text="Osiągnięcia"
+        android:textSize="24sp"
+        android:textColor="#FFFFFF" />
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#424242"
+        android:layout_marginHorizontal="8dp">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Bench Press Row -->
+            <ImageView
+                android:id="@+id/benchPressIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bench"
+                android:contentDescription="Wyciskanie na ławie - ikona"
+                app:tint="#4CAF50"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/benchPressLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wyciskanie na ławie:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/benchPressIcon"
+                app:layout_constraintTop_toTopOf="@id/benchPressIcon"
+                android:src="@drawable/ic_bench"
+                android:contentDescription="Bench Press Icon"                />
+
+            <TextView
+                android:id="@+id/benchPressTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/benchPressIcon"
+                app:layout_constraintBottom_toBottomOf="@id/benchPressIcon" />
+
+            <!-- Separator 1 -->
+            <View
+                android:id="@+id/separator1"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/benchPressIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Squats Row -->
+            <ImageView
+                android:id="@+id/squatsIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bench"
+                android:contentDescription="Przysiady - ikona"
+                app:tint="#4CAF50"
+                android:layout_marginTop="12dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/separator1" />
+
+            <TextView
+                android:id="@+id/squatsLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Przysiady:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/squatsIcon"
+                app:layout_constraintTop_toTopOf="@id/squatsIcon"
+                app:layout_constraintBottom_toBottomOf="@id/squatsIcon" />
+
+            <TextView
+                android:id="@+id/squatsTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/squatsIcon"
+                app:layout_constraintBottom_toBottomOf="@id/squatsIcon" />
+
+            <!-- Separator 2 -->
+            <View
+                android:id="@+id/separator2"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#FFFFFF"
+                android:layout_marginTop="12dp"
+                app:layout_constraintTop_toBottomOf="@id/squatsIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Deadlift Row -->
+            <ImageView
+                android:id="@+id/deadliftIcon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_bench"
+                android:contentDescription="Martwy ciąg - ikona"
+                app:tint="#4CAF50"
+                android:layout_marginTop="12dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/separator2" />
+
+            <TextView
+                android:id="@+id/deadliftLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Martwy ciąg:"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:layout_marginStart="12dp"
+                app:layout_constraintStart_toEndOf="@id/deadliftIcon"
+                app:layout_constraintTop_toTopOf="@id/deadliftIcon"
+                app:layout_constraintBottom_toBottomOf="@id/deadliftIcon" />
+
+            <TextView
+                android:id="@+id/deadliftTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Brak danych"
+                android:textSize="16sp"
+                android:textColor="#B0BEC5"
+                android:fontFamily="sans-serif-light"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/deadliftIcon"
+                app:layout_constraintBottom_toBottomOf="@id/deadliftIcon" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Spacer -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Bottom Navigation Bar -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#424242">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingHorizontal="16dp">
+            <ImageButton
+                android:id="@+id/menuButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_menu"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Menu"
+                android:scaleType="fitCenter"
+                app:tint="#FFFFFF"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+            <ImageButton
+                android:id="@+id/homeButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_home"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Home"
+                android:scaleType="fitCenter"
+                app:tint="#FFFFFF"
+                app:layout_constraintStart_toEndOf="@id/menuButton"
+                app:layout_constraintEnd_toStartOf="@id/profileButton"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+            <ImageButton
+                android:id="@+id/profileButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_profile"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Profil"
+                android:scaleType="fitCenter"
+                app:tint="#FFFFFF"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.cardview.widget.CardView>
+</LinearLayout>
